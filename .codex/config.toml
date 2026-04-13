@@ -1,0 +1,31 @@
+[agents]
+max_threads = 4
+max_depth = 2
+
+[agents.use_case_harvester]
+description = "유스케이스 수집 및 coverage gate 판정용 에이전트"
+config_file = "agents/use_case_harvester.toml"
+
+[agents.oracle]
+description = "이벤트 스토밍 및 상세 설계용 에이전트"
+config_file = "agents/oracle.toml"
+
+[agents.doc_writer]
+description = "oracle 산출물을 구조화된 문서로 기록하는 문서 작성 전용 에이전트"
+config_file = "agents/doc_writer.toml"
+
+[agents.doc_verify]
+description = "문서 구조/링크/정합성/최신성 검증 에이전트"
+config_file = "agents/doc_verify.toml"
+
+[agents.executor]
+description = "구현 에이전트"
+config_file = "agents/executor.toml"
+
+[agents.execute_writer]
+description = "코드 변경 기반 문서 동기화 에이전트"
+config_file = "agents/execute_writer.toml"
+
+[agents.closer]
+description = "완료 처리 및 PR 정리 에이전트"
+config_file = "agents/closer.toml"

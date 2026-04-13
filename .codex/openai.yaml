@@ -1,0 +1,26 @@
+interface:
+  display_name: "Orchestrate Plan"
+  short_description: "Run harvest → design → documentation → verification → implementation → doc sync → verification → closure pipeline"
+
+  default_prompt: >
+    Use $orchestrate-plan to route this request through
+    use_case_harvester, oracle, doc_writer, doc_verify,
+    executor, execute_writer, doc_verify, and closer.
+
+    STRICT RULE:
+    Do not start oracle or any downstream agent unless ALL conditions are met:
+
+    1. use-case-harvest.md exists
+    2. coverage_gate == YES
+    3. status == ready-for-oracle
+    4. user explicitly approved proceeding
+
+    If any condition is not satisfied:
+    - STOP immediately
+    - explain why orchestration cannot start
+    - instruct user to run use_case_harvester or update the harvest document
+
+    DOCUMENT ID RULE:
+    - Every output document must contain a deterministic id.
+    - The id format is <DOC_TYPE>__<domain>__<task>.
+    - The id must be derived from the document path, not randomly generated.
