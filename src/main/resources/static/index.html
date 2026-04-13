@@ -3,58 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zetenkastel Notes</title>
-  <link rel="stylesheet" href="/styles.css">
+  <title>Zettelkasten Notes</title>
+  <style>
+    :root {
+      --bg: #f5efe6;
+      --card: #fffdf8;
+      --ink: #1e1f24;
+      --accent: #0f766e;
+      --accent2: #b45309;
+      --line: #d6cbb8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Noto Sans KR", "Pretendard", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 10% 20%, #fff6e8 0%, var(--bg) 55%, #e8decf 100%);
+      min-height: 100vh;
+    }
+    .layout {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.06);
+    }
+    h1 { margin: 0 0 10px; font-size: 24px; }
+    h2 { margin: 0 0 8px; font-size: 18px; }
+    input, textarea, select, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      margin-top: 6px;
+      background: #fff;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    button {
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      transition: transform .15s ease;
+    }
+    button.secondary { background: var(--accent2); }
+    button:hover { transform: translateY(-1px); }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .list { max-height: 400px; overflow: auto; display: grid; gap: 8px; }
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .item:hover { border-color: var(--accent); }
+    .tags { font-size: 12px; color: #6b7280; }
+    .top-nav { margin-top: 10px; display: flex; gap: 8px; }
+    .top-nav a {
+      text-decoration: none;
+      color: #fff;
+      background: #1f2937;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<div class="bg"></div>
-<header>
-  <h1>Zetenkastel Notes</h1>
-  <div class="search">
-    <input id="q" placeholder="제목/내용 검색">
-    <input id="tag" placeholder="태그 검색 (예: java)">
-    <button id="searchBtn">검색</button>
-    <button id="resetBtn">초기화</button>
+  <div class="layout">
+    <section class="panel">
+      <h1>Zettelkasten</h1>
+      <div class="top-nav">
+        <a href="/graph.html">Graph View</a>
+      </div>
+
+      <h2 style="margin-top:16px">검색</h2>
+      <input id="searchQuery" placeholder="제목/내용/태그 검색어">
+      <input id="searchTag" placeholder="태그 정확 검색 (예: java)">
+      <button onclick="searchNotes()">검색</button>
+
+      <h2 style="margin-top:16px">노트 목록</h2>
+      <button class="secondary" onclick="loadNotes()">전체 새로고침</button>
+      <div id="noteList" class="list" style="margin-top:8px"></div>
+    </section>
+
+    <section class="panel">
+      <h2>노트 편집</h2>
+      <div class="row">
+        <div>
+          <label>노트 타입</label>
+          <select id="type"></select>
+        </div>
+        <div>
+          <label>파일명 (식별자 일부)</label>
+          <input id="fileName" placeholder="my-note">
+        </div>
+      </div>
+      <label>제목</label>
+      <input id="title" placeholder="노트 제목">
+      <label>태그 (쉼표 구분)</label>
+      <input id="tags" placeholder="zettel,java,spring">
+      <label>링크 (pathKey, 쉼표 구분)</label>
+      <input id="links" placeholder="inbox/a,projects/b">
+      <label>내용</label>
+      <textarea id="content"></textarea>
+      <div class="row">
+        <button onclick="createNote()">생성</button>
+        <button onclick="updateNote()">수정</button>
+      </div>
+      <div class="row">
+        <button class="secondary" onclick="deleteNote()">삭제</button>
+        <button class="secondary" onclick="recommendLinks()">링크 추천</button>
+      </div>
+
+      <h2 style="margin-top:16px">백링크</h2>
+      <div id="backlinks" class="list"></div>
+
+      <h2 style="margin-top:16px">추천 링크</h2>
+      <div id="recommendations" class="list"></div>
+    </section>
   </div>
-</header>
 
-<main>
-  <aside class="types">
-    <h2>Note Types</h2>
-    <ul id="typeList"></ul>
-  </aside>
+  <script>
+    async function api(path, options = {}) {
+      const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
 
-  <section class="notes">
-    <div class="notes-head">
-      <h2 id="listTitle">Notes</h2>
-      <button id="newBtn">새 노트</button>
-    </div>
-    <ul id="noteList"></ul>
-  </section>
+    function buildPayload() {
+      return {
+        type: document.getElementById('type').value,
+        fileName: document.getElementById('fileName').value.trim(),
+        title: document.getElementById('title').value,
+        tags: document.getElementById('tags').value.split(',').map(v => v.trim()).filter(Boolean),
+        links: document.getElementById('links').value.split(',').map(v => v.trim()).filter(Boolean),
+        content: document.getElementById('content').value,
+      };
+    }
 
-  <section class="editor">
-    <h2>Editor</h2>
-    <label>Type<select id="type"></select></label>
-    <label>Path<input id="path" readonly></label>
-    <label>Title<input id="title"></label>
-    <label>Tags<input id="tags" placeholder="tag1,tag2"></label>
-    <label>Content<textarea id="content" rows="14" placeholder="위키 링크 예시: [[inbox/sample.md]]"></textarea></label>
-    <div class="actions">
-      <button id="createBtn">생성</button>
-      <button id="saveBtn">저장</button>
-      <button id="deleteBtn">삭제</button>
-      <button id="recommendBtn">링크 추천</button>
-    </div>
-    <div id="recommendations" class="panel"></div>
-    <div id="backlinks" class="panel"></div>
-  </section>
-</main>
+    function fillForm(note) {
+      document.getElementById('type').value = note.type;
+      document.getElementById('fileName').value = note.fileName;
+      document.getElementById('title').value = note.title;
+      document.getElementById('tags').value = note.tags.join(',');
+      document.getElementById('links').value = note.links.join(',');
+      document.getElementById('content').value = note.content;
+      loadBacklinks(note.type, note.fileName);
+    }
 
-<section class="graph-wrap">
-  <h2>Graph View</h2>
-  <svg id="graph" width="100%" height="380"></svg>
-</section>
+    function renderList(containerId, items, mapper) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = '';
+      if (!items.length) {
+        el.innerHTML = '<div class="item">결과 없음</div>';
+        return;
+      }
+      for (const item of items) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = mapper(item);
+        el.appendChild(div);
+      }
+    }
 
-<script src="/app.js"></script>
+    async function loadTypes() {
+      const types = await api('/api/note-types');
+      const select = document.getElementById('type');
+      for (const type of types) {
+        const opt = document.createElement('option');
+        opt.value = type;
+        opt.textContent = type;
+        select.appendChild(opt);
+      }
+    }
+
+    async function loadNotes() {
+      const notes = await api('/api/notes');
+      const el = document.getElementById('noteList');
+      el.innerHTML = '';
+      if (!notes.length) {
+        el.innerHTML = '<div class="item">노트가 없습니다.</div>';
+        return;
+      }
+      for (const note of notes) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<strong>${note.title || note.fileName}</strong><br><small>${note.id}</small><div class="tags">${note.tags.join(', ')}</div>`;
+        div.onclick = async () => {
+          const selected = await api(`/api/notes/${note.type}/${note.fileName}`);
+          fillForm(selected);
+        };
+        el.appendChild(div);
+      }
+    }
+
+    async function searchNotes() {
+      const q = encodeURIComponent(document.getElementById('searchQuery').value || '');
+      const tag = encodeURIComponent(document.getElementById('searchTag').value || '');
+      const notes = await api(`/api/notes/search?q=${q}&tag=${tag}`);
+      renderList('noteList', notes, note => `<strong>${note.title || note.fileName}</strong><br><small>${note.id}</small>`);
+    }
+
+    async function createNote() {
+      const payload = buildPayload();
+      if (!payload.fileName) return alert('파일명을 입력하세요.');
+      await api('/api/notes?linkMode=RECOMMEND', { method: 'POST', body: JSON.stringify(payload) });
+      await loadNotes();
+      await loadBacklinks(payload.type, payload.fileName);
+      alert('생성 완료');
+    }
+
+    async function updateNote() {
+      const payload = buildPayload();
+      await api(`/api/notes/${payload.type}/${payload.fileName}?linkMode=RECOMMEND`, { method: 'PUT', body: JSON.stringify(payload) });
+      await loadNotes();
+      await loadBacklinks(payload.type, payload.fileName);
+      alert('수정 완료');
+    }
+
+    async function deleteNote() {
+      const payload = buildPayload();
+      await api(`/api/notes/${payload.type}/${payload.fileName}`, { method: 'DELETE' });
+      await loadNotes();
+      renderList('backlinks', [], () => '');
+      renderList('recommendations', [], () => '');
+      alert('삭제 완료');
+    }
+
+    async function loadBacklinks(type, fileName) {
+      const notes = await api(`/api/notes/${type}/${fileName}/backlinks`);
+      renderList('backlinks', notes, n => `<strong>${n.title || n.fileName}</strong><br><small>${n.id}</small>`);
+    }
+
+    async function recommendLinks() {
+      const type = document.getElementById('type').value;
+      const fileName = document.getElementById('fileName').value.trim();
+      const recs = await api(`/api/notes/${type}/${fileName}/recommendations`);
+      renderList('recommendations', recs, r => `<strong>${r.note.title || r.note.fileName}</strong><br><small>${r.note.id}</small><br><small>score: ${r.score.toFixed(3)}</small>`);
+    }
+
+    (async () => {
+      try {
+        await loadTypes();
+        await loadNotes();
+      } catch (e) {
+        alert(e.message);
+      }
+    })();
+  </script>
 </body>
 </html>
