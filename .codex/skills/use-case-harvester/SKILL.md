@@ -59,7 +59,7 @@ description: >
 
 이 스킬은 다음을 하지 않는다.
 
-- 사용자에게 추가 질문하기
+- 사용자에게 추가 질문하기 (예외: 기본 구현 스택 확인 질문은 필수 1회 허용)
 - 이벤트 스토밍 시작하기
 - aggregate / bounded context 설계 시작하기
 - oracle 또는 downstream agent 호출하기
@@ -72,6 +72,7 @@ description: >
 ## Global Rules
 
 - 반드시 `AGENTS.md` 와 `ARCHITECTURE.md` 를 따른다
+- 기본 구현 스택(언어/프레임워크/런타임)이 명시되지 않았으면, harvest 고도화 전에 해당 항목을 사용자에게 먼저 확인한다
 - 기존 `use-case-harvest.md` 가 있으면 먼저 읽는다
 - 기존 구조와 수동 메모를 가능한 한 보존한다
 - confirmed use case를 근거 없이 제거하지 않는다
@@ -143,6 +144,7 @@ use-case-harvest 문서는 반드시 아래 경로에 있어야 한다.
 - 유스케이스는 구현 작업이 아니라 사용자/시스템 행위여야 한다
 - 근거가 약한 항목은 confirmed로 올리지 않는다
 - 프롬프트 직접 근거가 없는 항목은 rejected 또는 missing-but-plausible 로 분리한다
+- 기본 구현 스택이 비어 있으면 `Blocking Unknowns`에 명시하고 stack 확인 질문을 선행한다
 
 ---
 
