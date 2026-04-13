@@ -1,0 +1,96 @@
+:root {
+  --bg-1: #f6f8f1;
+  --bg-2: #dde8d1;
+  --ink: #1f2a1f;
+  --muted: #5a6758;
+  --card: #ffffffd9;
+  --line: #c6d4bf;
+  --accent: #2f6f4e;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", "Noto Sans KR", sans-serif;
+  color: var(--ink);
+  background: linear-gradient(130deg, var(--bg-1), var(--bg-2));
+}
+
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 20% 15%, #ffffff88, transparent 35%), radial-gradient(circle at 80% 85%, #bad3bd66, transparent 40%);
+}
+
+header, main, .graph-wrap { position: relative; z-index: 1; }
+header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+header h1 { margin: 0; font-size: 1.25rem; }
+
+.search { display: flex; gap: 8px; flex-wrap: wrap; }
+input, textarea, select, button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: inherit;
+}
+button {
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button:hover { opacity: 0.9; }
+
+main {
+  display: grid;
+  grid-template-columns: 220px 1fr 1.2fr;
+  gap: 12px;
+  padding: 12px;
+}
+
+.types, .notes, .editor, .graph-wrap {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+ul { list-style: none; margin: 0; padding: 0; }
+#typeList li, #noteList li {
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#typeList li:hover, #noteList li:hover { background: #e9f1e6; }
+.active { background: #d6ead7 !important; }
+
+.notes-head { display: flex; justify-content: space-between; align-items: center; }
+.editor label { display: block; margin-bottom: 8px; }
+.editor input, .editor textarea, .editor select { width: 100%; margin-top: 4px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.panel {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 8px;
+  color: var(--muted);
+  margin-top: 8px;
+  min-height: 40px;
+}
+
+.graph-wrap { margin: 0 12px 12px; }
+#graph line { stroke: #6f8b74; stroke-width: 1; }
+#graph circle { fill: #3b7c57; }
+#graph text { fill: #1f2a1f; font-size: 11px; }
+
+@media (max-width: 1100px) {
+  main { grid-template-columns: 1fr; }
+  .graph-wrap { margin: 12px; }
+}

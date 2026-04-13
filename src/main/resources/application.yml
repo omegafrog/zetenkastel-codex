@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: zetenkastel-notes
+
+notes:
+  storage:
+    root: ./data/notes

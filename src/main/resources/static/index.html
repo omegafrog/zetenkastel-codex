@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zetenkastel Notes</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="bg"></div>
+<header>
+  <h1>Zetenkastel Notes</h1>
+  <div class="search">
+    <input id="q" placeholder="제목/내용 검색">
+    <input id="tag" placeholder="태그 검색 (예: java)">
+    <button id="searchBtn">검색</button>
+    <button id="resetBtn">초기화</button>
+  </div>
+</header>
+
+<main>
+  <aside class="types">
+    <h2>Note Types</h2>
+    <ul id="typeList"></ul>
+  </aside>
+
+  <section class="notes">
+    <div class="notes-head">
+      <h2 id="listTitle">Notes</h2>
+      <button id="newBtn">새 노트</button>
+    </div>
+    <ul id="noteList"></ul>
+  </section>
+
+  <section class="editor">
+    <h2>Editor</h2>
+    <label>Type<select id="type"></select></label>
+    <label>Path<input id="path" readonly></label>
+    <label>Title<input id="title"></label>
+    <label>Tags<input id="tags" placeholder="tag1,tag2"></label>
+    <label>Content<textarea id="content" rows="14" placeholder="위키 링크 예시: [[inbox/sample.md]]"></textarea></label>
+    <div class="actions">
+      <button id="createBtn">생성</button>
+      <button id="saveBtn">저장</button>
+      <button id="deleteBtn">삭제</button>
+      <button id="recommendBtn">링크 추천</button>
+    </div>
+    <div id="recommendations" class="panel"></div>
+    <div id="backlinks" class="panel"></div>
+  </section>
+</main>
+
+<section class="graph-wrap">
+  <h2>Graph View</h2>
+  <svg id="graph" width="100%" height="380"></svg>
+</section>
+
+<script src="/app.js"></script>
+</body>
+</html>
