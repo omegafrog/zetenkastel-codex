@@ -12,6 +12,8 @@
 
 ## Canonical Paths
 
+- work-unit hub doc:
+  docs/work-units/<domain>/<task>/index.md
 - active exec docs:
   docs/exec-plans/active/<domain>/<task>/
 - completed exec docs:
@@ -24,7 +26,11 @@
 - `doc_path` must be project-root-relative full path including filename
   (for example: `docs/exec-plans/active/<domain>/<task>/plan.md`).
 - Do not use document id fields.
-- Cross-document discovery uses `grep` patterns, not backlinks.
+- Every orchestration unit must maintain a single hub doc at
+  `docs/work-units/<domain>/<task>/index.md`.
+- All stage output docs must include a backlink to the hub doc.
+- Hub doc must list forward links to all stage output docs.
+- Cross-document discovery uses `grep` patterns first, then hub backlinks.
 
 ## Canonical Status Enums
 

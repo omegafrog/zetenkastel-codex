@@ -17,3 +17,6 @@ last_updated: 2026-04-13:22:17
 
 # Traceability
 - Harvest Source: docs/use-case-harvests/zetenkastel/note-management-program/use-case-harvest.md
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

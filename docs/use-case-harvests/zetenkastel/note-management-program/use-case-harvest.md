@@ -190,3 +190,6 @@ last_updated: 2026-04-13:22:16
 - 인증/다중사용자/백업 기능을 범위에 추가하지 않는다.
 - 자동 연결/추천을 사용자 확인 없이 완전 자동으로 고정 가정하지 않는다.
 - User Approval Required Before Orchestration: YES
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

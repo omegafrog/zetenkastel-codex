@@ -31,3 +31,6 @@ last_updated: 2026-04-13:22:17
 # Change Log
 - 2026-04-13:22:17 plan 생성
 - 2026-04-13:22:17 executor 실행 결과 반영 (test/build PASS)
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

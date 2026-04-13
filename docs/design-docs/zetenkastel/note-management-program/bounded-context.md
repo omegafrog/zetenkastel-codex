@@ -13,3 +13,6 @@ last_updated: 2026-04-13:22:17
 - UI Context
 - plain JavaScript 화면 렌더링
 - REST API 호출 및 상태 반영
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

@@ -24,3 +24,6 @@ last_updated: 2026-04-13:22:17
 
 # External Systems
 - 없음 (로컬 파일 시스템만 사용)
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

@@ -102,6 +102,7 @@ feat(storage/sync): add repository validation policy
 
 - status → completed
 - completed_at 기록
+- work-unit index.md status/latest_stage/closure_verdict 갱신
 - docs 이동:
   active → completed
 - 이동 시 문서 id는 변경하지 않는다.

@@ -71,3 +71,6 @@ last_updated: 2026-04-13:22:17
 # Risks & Follow-ups
 - 노트 수 증가 시 그래프 렌더링 성능 저하 가능성
 - 파일 I/O 충돌(동시 편집) 대응 정책 고도화 필요
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

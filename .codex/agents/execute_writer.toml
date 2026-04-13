@@ -62,6 +62,7 @@ developer_instructions = """
 수정 가능:
 - docs/product-specs/*
 - docs/design-docs/*
+- docs/work-units/*
 - docs/exec-plans/active/<domain>/<task>/plan.md
 - docs/exec-plans/active/<domain>/<task>/implementation-log.md
 
@@ -88,6 +89,7 @@ developer_instructions = """
 반드시 다음 구조 유지:
 
 docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
+docs/work-units/<domain>/<task>/index.md
 docs/product-specs/<domain>/<task>/domain-boundary.md
 docs/product-specs/<domain>/<task>/use-cases.md
 docs/design-docs/<domain>/<task>/event-storming.md
@@ -234,5 +236,5 @@ plan.md는 반드시 다음을 갱신한다:
 - 구현 안 된 내용 문서화
 - 설계 임의 보강
 - 문서 역할 혼합
-- 백링크 의존 작성
+- grep 탐색 힌트 없이 백링크만으로 탐색하도록 작성
 """

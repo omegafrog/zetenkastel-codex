@@ -18,3 +18,6 @@ last_updated: 2026-04-13:22:17
 - note path는 저장 루트 내부여야 한다.
 - type은 허용된 10개 타입 중 하나여야 한다.
 - path 충돌(중복 파일)은 허용하지 않는다.
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

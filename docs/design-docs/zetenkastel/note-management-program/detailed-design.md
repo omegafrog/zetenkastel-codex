@@ -18,3 +18,6 @@ last_updated: 2026-04-13:22:17
 - API 오류 시 사용자 메시지 표시
 - 파일 접근 실패 시 500 + 오류 메시지
 - 잘못된 입력 시 400 + 오류 메시지
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

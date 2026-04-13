@@ -28,3 +28,6 @@ last_updated: 2026-04-13:22:17
 - NoteDetail
 - GraphView
 - Recommendation
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

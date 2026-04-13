@@ -96,6 +96,9 @@ description: >
 - 모든 문서는 프로젝트 루트 기준 `doc_path`를 가져야 한다.
 - `doc_path`는 경로+파일명을 포함해야 한다.
 - 문서 식별에 id를 사용하지 않는다.
+- 오케스트레이션 1회 실행은 하나의 work unit으로 기록한다.
+- work unit 허브 문서는 `docs/work-units/<domain>/<task>/index.md`를 사용한다.
+- stage 산출 문서는 work unit 허브로 backlink를 포함한다.
 - executor는 반드시 `docs/exec-plans/active/<domain>/<task>/plan.md` 기준으로만 구현한다.
 - execute_writer는 반드시 executor 결과와 실제 diff를 함께 기준으로 문서를 갱신한다.
 - closer는 모든 완료 조건이 충족될 때만 완료 처리한다.
@@ -113,12 +116,16 @@ description: >
 - `doc_path`는 프로젝트 루트 기준 상대경로여야 한다.
 - 문서 id 필드는 사용하지 않는다.
 - active/completed 이동 시 문서 식별은 이동된 `doc_path` 기준으로 판단한다.
+- work unit 허브 문서는 `docs/work-units/<domain>/<task>/index.md`로 고정한다.
+- 허브 문서는 각 stage 문서로 forward link를 가진다.
+- 각 stage 문서는 허브 문서로 backlink를 가진다.
 
 ## Expected Document Paths
 
 오케스트레이션 산출물은 반드시 아래 경로 규칙을 따른다.
 
 - `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
+- `docs/work-units/<domain>/<task>/index.md`
 - `docs/product-specs/<domain>/<task>/domain-boundary.md`
 - `docs/product-specs/<domain>/<task>/use-cases.md`
 - `docs/design-docs/<domain>/<task>/event-storming.md`
@@ -128,7 +135,7 @@ description: >
 - `docs/exec-plans/active/<domain>/<task>/plan.md`
 - `docs/exec-plans/active/<domain>/<task>/implementation-log.md`
 
-문서 탐색은 백링크/수동 링크보다 grep 패턴을 우선 사용한다.
+문서 탐색은 grep 패턴을 우선 사용하고, 보조 탐색으로 work unit 허브 backlink를 사용한다.
 
 ## Hard Gate Before Oracle And Downstream Steps
 
@@ -158,6 +165,7 @@ description: >
 수행:
 
 - `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md` 를 생성 또는 갱신한다.
+- `docs/work-units/<domain>/<task>/index.md`를 생성 또는 갱신한다.
 - 문서에는 반드시 다음을 포함해야 한다.
   - `# Properties`
   - `doc_path`
@@ -173,6 +181,7 @@ description: >
 - Coverage Mapping을 기록한다.
 - Coverage Gate를 기록한다.
 - Oracle Handoff 섹션을 기록한다.
+- work unit index.md에 harvest 단계 상태와 문서 링크를 기록한다.
 
 판정:
 
@@ -247,6 +256,7 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 
 반드시 생성 또는 갱신 대상에 포함:
 
+- `docs/work-units/<domain>/<task>/index.md`
 - `docs/product-specs/<domain>/<task>/domain-boundary.md`
 - `docs/product-specs/<domain>/<task>/use-cases.md`
 - `docs/design-docs/<domain>/<task>/event-storming.md`
@@ -261,6 +271,7 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 - plan.md는 단일 진입점 역할을 유지한다.
 - 문서 간 탐색은 grep 패턴을 우선한다.
 - doc_path를 포함한다.
+- 각 stage 문서는 `Backlinks` 섹션에서 work unit index를 가리킨다.
 - 수동 메모가 있으면 근거 없이 삭제하지 않는다.
 
 ### Step 5. Run doc_verify
@@ -274,6 +285,8 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 - doc_path 존재 여부
 - doc_path와 실제 파일 경로 일치 여부
 - grep 기반 탐색 가능 여부
+- work unit index 존재 여부
+- index forward links와 stage 문서 backlinks 정합성
 - 역할 분리 위반 여부
 - use-case / event-storming / aggregate / bounded context / detailed design 사이의 정합성
 - grep 기반 문서 탐색 힌트 유지 여부
@@ -345,6 +358,7 @@ executor 결과와 실제 diff를 바탕으로 docs를 동기화하고 implement
 - code-to-plan mapping 기록
 - documentation updates 기록
 - unresolved mismatches 기록
+- work unit index.md에 실행/검증/완료 상태를 반영
 
 필수 문서:
 
@@ -418,6 +432,7 @@ stopped_at: doc_verify_after_execute
 
 - 관련 작업 문서 status를 completed로 갱신한다.
 - 필요한 완료 메타데이터를 기록한다.
+- work unit index.md에 closure verdict를 기록한다.
 - `docs/exec-plans/active/<domain>/<task>/` 아래의 관련 실행 문서를 completed 경로로 이동한다.
 - 이동 시 문서 id는 변경하지 않는다.
 - 이동 후 grep 탐색성이 깨지면 문서 경로/탐색 힌트만 최소 수정한다.
@@ -479,6 +494,7 @@ status: completed
 
 # Primary Output Paths
 - docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
+- docs/work-units/<domain>/<task>/index.md
 - docs/product-specs/<domain>/<task>/domain-boundary.md
 - docs/product-specs/<domain>/<task>/use-cases.md
 - docs/design-docs/<domain>/<task>/event-storming.md
