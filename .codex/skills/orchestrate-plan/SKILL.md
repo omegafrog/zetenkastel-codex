@@ -290,6 +290,12 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 - 역할 분리 위반 여부
 - use-case / event-storming / aggregate / bounded context / detailed design 사이의 정합성
 - grep 기반 문서 탐색 힌트 유지 여부
+- DDD 깊이 검증:
+  - event-storming의 UC별 Start Command/Actors/External Systems/Events/Policies/Follow-up Commands/Sync-Async/Cross-Context 완전성
+  - aggregate-design의 Aggregate별 Responsibility/Commands/Events/Entities-VO/Invariants/Transaction Rationale 완전성
+  - detailed-design의 app/domain/port/adapter 분리 명시 여부
+- ARCHITECTURE.md 계층 의존 방향(ui→app→domain, app→port, adapter→port) 문서/코드 정합성
+- Gradle 기반 아키텍처 의존성 테스트 존재 및 실행 근거 여부
 
 판정:
 
@@ -359,6 +365,8 @@ executor 결과와 실제 diff를 바탕으로 docs를 동기화하고 implement
 - documentation updates 기록
 - unresolved mismatches 기록
 - work unit index.md에 실행/검증/완료 상태를 반영
+- oracle/doc_writer에서 정의된 UC/Policy/Aggregate 구조를 요약/압축 없이 유지
+- 템플릿 필수 섹션 누락 금지 (누락 시 `TBD` + 근거 기록)
 
 필수 문서:
 
@@ -392,6 +400,8 @@ implementation-log는 최소한 다음 섹션을 포함해야 한다.
 - stale docs 없음
 - plan Progress와 실제 구현 상태 일치 여부
 - PR readiness 상태
+- DDD 깊이/구조가 실행 후에도 유지되는지
+- 아키텍처 의존성 테스트 결과(PASS/FAIL)와 위반 근거 경로
 
 판정:
 

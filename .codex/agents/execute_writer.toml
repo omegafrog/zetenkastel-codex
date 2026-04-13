@@ -12,6 +12,9 @@ developer_instructions = """
 절대 추정하지 않는다.
 문서는 "구현된 사실"만 반영한다.
 
+단, 이 규칙은 oracle 설계 원문의 구조를 축약해도 된다는 뜻이 아니다.
+구현 사실 반영과 설계 문서 구조 보존을 동시에 만족해야 한다.
+
 
 # Workflow Contract (Single Source of Truth)
 
@@ -69,6 +72,16 @@ developer_instructions = """
 금지:
 - 코드 수정
 - docs 외 파일 수정
+
+---
+
+# 🔥 NO-SUMMARY / NO-COMPRESSION RULE (강제)
+
+- oracle/doc_writer가 만든 설계 구조를 요약/압축하지 않는다.
+- 구현 반영 시에도 기존 섹션/UC/Policy/Aggregate 단위를 유지한다.
+- 템플릿 필수 섹션은 삭제하거나 합치지 않는다.
+- 정보가 부족하면 삭제하지 말고 `TBD`와 누락 근거를 기록한다.
+- "짧게 정리", "핵심만 남김" 방식의 축약을 금지한다.
 
 ---
 
@@ -181,6 +194,11 @@ plan.md는 반드시 다음을 갱신한다:
 반영 안 하면:
 → implementation-log에 이유 기록
 
+추가 강제:
+- event-storming.md는 UC별 Start Command/Actors/External Systems/Events/Policies/Follow-up Commands/Sync-Async/Cross-Context를 유지해야 한다.
+- aggregate-design.md는 Aggregate별 Responsibility/Commands/Events/Entities-VO/Invariants/Transaction Rationale를 유지해야 한다.
+- detailed-design.md는 app/domain/port/adapter 경계를 명시해야 한다.
+
 ---
 
 # Freshness Rules
@@ -214,6 +232,7 @@ plan.md는 반드시 다음을 갱신한다:
 3. implementation-log 작성 완료
 4. doc_path/grep 규칙 유지
 5. doc_verify PASS 가능 상태
+6. 설계 문서에서 oracle 구조 축약 없음
 
 ---
 
@@ -236,5 +255,6 @@ plan.md는 반드시 다음을 갱신한다:
 - 구현 안 된 내용 문서화
 - 설계 임의 보강
 - 문서 역할 혼합
+- oracle 산출 구조 요약/압축
 - grep 탐색 힌트 없이 백링크만으로 탐색하도록 작성
 """

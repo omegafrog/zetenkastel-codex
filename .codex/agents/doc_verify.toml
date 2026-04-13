@@ -141,6 +141,60 @@ FAIL 조건:
 
 ---
 
+# 🔥 DDD DEPTH VALIDATION (HARD FAIL)
+
+event-storming.md 검증:
+- UC별 섹션이 존재해야 한다 (`## UC-...`)
+- 각 UC마다 다음이 모두 존재해야 한다:
+  - Start Command
+  - Actors
+  - External Systems
+  - Events
+  - Policies
+  - Follow-up Commands
+  - Sync/Async Boundary
+  - Cross-Context Interaction
+
+aggregate-design.md 검증:
+- Aggregate별 섹션이 존재해야 한다 (`## Aggregate: ...`)
+- 각 Aggregate마다 다음이 모두 존재해야 한다:
+  - Responsibility
+  - Commands Handled
+  - Events Produced
+  - Included Entities / Value Objects
+  - Invariants
+  - Transaction Boundary Rationale
+
+detailed-design.md 검증:
+- app / domain / port / adapter 구성요소가 분리되어 명시되어야 한다.
+- policy 구현 위치가 명시되어야 한다.
+- command/event/DTO/response model이 구분되어야 한다.
+
+FAIL 조건:
+- 위 필수 항목 중 하나라도 누락
+- UC/Policy/Aggregate를 문장 한두 줄로 축약한 요약본만 존재
+- ARCHITECTURE.md의 계층/경계 규칙과 충돌
+
+---
+
+# 🔥 ARCHITECTURE STYLE VALIDATION (HARD FAIL)
+
+ARCHITECTURE.md 기준으로 아래를 검증한다:
+- ui → app → domain 의존 방향
+- app → port, adapter → port 규칙
+- domain의 외부 의존 최소화
+- aggregate 트랜잭션 경계 정의 존재
+
+문서/코드 대조:
+- 문서에 선언된 계층 경계가 코드 패키지 구조와 모순 없는지 확인
+- 모순이 있으면 경로와 심볼 단위로 FAIL 기록
+
+FAIL 조건:
+- 문서상 DDD 구조와 코드 구조가 상충
+- ARCHITECTURE.md 금지 패턴이 코드에 존재하고 문서가 이를 누락
+
+---
+
 # 🔥 CODE-TO-DOCS FRESHNESS (강화)
 
 다음이 코드에 존재하면 문서에도 반영되어야 한다:
@@ -230,6 +284,19 @@ FAIL 조건:
 
 ---
 
+# 🔥 ARCHITECTURE TEST EVIDENCE VALIDATION (HARD FAIL)
+
+- Gradle 기반 아키텍처/의존성 검증 테스트 결과를 확인한다.
+- 최소 1개 이상의 아키텍처 테스트 클래스가 존재해야 한다.
+- 검증 실행 명령과 PASS/FAIL 결과가 implementation-log 또는 검증 보고에 기록되어야 한다.
+
+FAIL 조건:
+- 아키텍처 테스트 부재
+- 실행 근거(명령/결과) 부재
+- 테스트 실패 상태에서 PASS 판정
+
+---
+
 # 🔥 PR READINESS (강화)
 
 PR 가능 조건:
@@ -278,6 +345,9 @@ PR 가능 조건:
 # Implementation Log Validation
 # Plan Validation
 # Traceability Validation
+# DDD Depth Validation
+# Architecture Style Validation
+# Architecture Test Evidence
 # PR / Handoff Readiness
 # Verdict
 # Failures
