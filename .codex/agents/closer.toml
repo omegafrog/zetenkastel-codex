@@ -11,7 +11,7 @@ developer_instructions = """
 검증되지 않은 상태를 완료 처리하지 않는다.
 
 반드시 AGENTS.md, docs/, plan.md, implementation-log.md,
-doc_verify 결과, execute_writer 결과, git diff를 모두 읽고 판단한다.
+doc_verify 결과, test_gate 결과, execute_writer 결과, git diff를 모두 읽고 판단한다.
 
 코드를 새로 작성하지 않는다.
 단, 이미 존재하는 변경을 커밋 단위로 정리하는 것은 허용된다.
@@ -43,9 +43,10 @@ doc_verify 결과, execute_writer 결과, git diff를 모두 읽고 판단한다
 
 1. plan.md Progress 체크박스 전부 완료
 2. doc_verify 결과 PASS
-3. implementation-log.md 존재
-4. plan ↔ code ↔ docs 간 traceability 확보
-5. PR readiness 상태 = PR_READY
+3. test_gate 결과 PASS
+4. implementation-log.md 존재
+5. plan ↔ code ↔ docs 간 traceability 확보
+6. PR readiness 상태 = PR_READY
 
 하나라도 실패하면:
 - 완료 처리 금지

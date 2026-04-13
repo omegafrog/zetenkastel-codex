@@ -15,9 +15,10 @@ description: >
 3. doc_writer
 4. doc_verify
 5. executor
-6. execute_writer
-7. doc_verify
-8. closer
+6. test_gate
+7. execute_writer
+8. doc_verify
+9. closer
 
 이 순서는 반드시 유지한다.
 
@@ -28,6 +29,10 @@ description: >
 - coverage_gate: YES | PARTIAL | NO
 
 ### Verification Verdict
+
+- PASS | FAIL | BLOCKED
+
+### Test Gate Verdict
 
 - PASS | FAIL | BLOCKED
 
@@ -50,6 +55,7 @@ description: >
 - `.codex/agents/doc_writer.toml`
 - `.codex/agents/doc_verify.toml`
 - `.codex/agents/executor.toml`
+- `.codex/agents/test_gate.toml`
 - `.codex/agents/execute_writer.toml`
 - `.codex/agents/closer.toml`
 - `.codex/contracts/workflow-contract.md`
@@ -58,7 +64,7 @@ description: >
 
 최신 흐름은 다음이다.
 
-`use_case_harvester → oracle → doc_writer → doc_verify → executor → execute_writer → doc_verify → closer`
+`use_case_harvester → oracle → doc_writer → doc_verify → executor → test_gate → execute_writer → doc_verify → closer`
 
 ## Primary Goal
 
@@ -101,6 +107,7 @@ description: >
 - stage 산출 문서는 work unit 허브로 backlink를 포함한다.
 - executor는 반드시 `docs/exec-plans/active/<domain>/<task>/plan.md` 기준으로만 구현한다.
 - execute_writer는 반드시 executor 결과와 실제 diff를 함께 기준으로 문서를 갱신한다.
+- test_gate는 executor 이후 repository-specific 테스트를 실행하고 PASS일 때만 다음 단계로 진행한다.
 - closer는 모든 완료 조건이 충족될 때만 완료 처리한다.
 
 ## Document Reference Rule
@@ -350,7 +357,44 @@ stopped_at: doc_verify_before_execute
 
 실패 시 숨기지 말고 즉시 중단한다.
 
-### Step 7. Run execute_writer
+### Step 7. Run test_gate
+
+목표:
+executor 이후 repository-specific 테스트를 실행하여 다음 단계 진행 가능 여부를 판정한다.
+
+강제 규칙:
+
+- `.codex/test-gate.yaml`이 존재하면 해당 stage를 순서대로 실행한다.
+- `.codex/test-gate.yaml`이 없으면 `.codex/repository-settings.md` 또는 repo 자동탐지 규칙으로 커맨드를 결정한다.
+- stage 하나라도 실패하면 FAIL로 즉시 중단한다.
+- 환경/권한 문제로 실행 불가하면 BLOCKED로 즉시 중단한다.
+- PASS일 때만 execute_writer 단계로 진행한다.
+
+출력에는 반드시 아래를 포함한다:
+
+- test_gate_verdict: PASS | FAIL | BLOCKED
+- stage별 실행 커맨드
+- stage별 핵심 로그 증거
+- 다음 액션 (execute_writer 진행 또는 executor 복귀)
+
+중단 시 아래 형식을 따른다.
+
+```md
+# Orchestration Status
+status: stopped
+stopped_at: test_gate
+
+# Reason
+- repository-specific test gate failed or blocked
+
+# Evidence
+- <stage name + command + 핵심 로그>
+
+# Next Required Action
+- executor 단계로 되돌아가 실패 원인을 수정한다
+```
+
+### Step 8. Run execute_writer
 
 목표:
 executor 결과와 실제 diff를 바탕으로 docs를 동기화하고 implementation-log를 작성 또는 갱신한다.
@@ -387,7 +431,7 @@ implementation-log는 최소한 다음 섹션을 포함해야 한다.
 - Remaining Gaps
 - Risks & Follow-ups
 
-### Step 8. Run doc_verify Again
+### Step 9. Run doc_verify Again
 
 목표:
 최종 상태의 docs가 code와 동기화되어 있는지, implementation-log와 traceability가 충분한지, PR 준비 상태인지 검증한다.
@@ -426,7 +470,7 @@ stopped_at: doc_verify_after_execute
 - implementation-log, plan, docs traceability를 수정한다
 ```
 
-### Step 9. Run closer
+### Step 10. Run closer
 
 목표:
 모든 완료 조건이 만족될 때만 작업을 completed로 전환하고 PR을 정리한다.
@@ -435,7 +479,7 @@ stopped_at: doc_verify_after_execute
 
 1. 해당 세션의 `plan.md` checkbox가 모두 완료 상태다.
 2. 최종 doc_verify 결과가 PASS 상태다.
-3. 문서 동기화 검증이 PASS 상태다.
+3. test_gate 결과가 PASS 상태다.
 4. PR readiness가 PR_READY 상태다.
 
 수행:
@@ -464,6 +508,7 @@ stopped_at: doc_verify_after_execute
 - 사용자 승인 없음
 - pre-execution doc_verify FAIL 또는 BLOCKED
 - executor BLOCKED 또는 실패
+- test_gate FAIL 또는 BLOCKED
 - post-execution doc_verify FAIL 또는 BLOCKED
 - closer precondition 미충족
 
@@ -498,6 +543,7 @@ status: completed
 - doc_writer
 - doc_verify
 - executor
+- test_gate
 - execute_writer
 - doc_verify
 - closer
@@ -516,6 +562,7 @@ status: completed
 
 # Verification Summary
 - pre-execution doc verify: PASS
+- test gate: PASS
 - post-execution doc verify: PASS
 - pr readiness: PR_READY
 

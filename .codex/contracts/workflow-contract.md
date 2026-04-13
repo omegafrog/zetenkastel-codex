@@ -7,6 +7,7 @@
 - doc_writer
 - doc_verify
 - executor
+- test_gate
 - execute_writer
 - closer
 
@@ -36,6 +37,7 @@
 
 - coverage_gate: YES | PARTIAL | NO
 - verification_verdict: PASS | FAIL | BLOCKED
+- test_gate_verdict: PASS | FAIL | BLOCKED
 - pr_readiness: PR_READY | NOT_READY | BLOCKED
 - closure_verdict: COMPLETED | STOPPED
 

@@ -332,6 +332,7 @@ last_updated: <YYYY-MM-DD:HH:mm>
 - doc_writer:
 - doc_verify_before_execute:
 - executor:
+- test_gate:
 - execute_writer:
 - doc_verify_after_execute:
 - closer:
