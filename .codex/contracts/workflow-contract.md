@@ -20,6 +20,19 @@
 - completed exec docs:
   docs/exec-plans/completed/<domain>/<task>/
 
+## Invocation Unit Rule
+
+- `use_case_harvester` runs are append-only at the task-path level.
+- Each harvester invocation should create a new `<task>` identity for that run
+  (for example `<prompt-summary-slug>-YYYYMMDD-HHMM`), instead of overwriting a prior run's task path.
+- `<prompt-summary-slug>` must be a concise summary of the latest user prompt intent.
+- Slug rules:
+  - use lowercase kebab-case
+  - allowed chars: `a-z`, `0-9`, `-`
+  - no random suffix
+  - recommended length: 3-8 words (max 60 chars)
+- Downstream orchestration for that run updates or appends stage docs inside the same run-scoped `<task>` path.
+
 ## Path Reference Invariants
 
 - During closure, exec docs may be moved from active to completed path.

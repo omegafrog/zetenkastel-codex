@@ -3,14 +3,14 @@ name: use-case-harvester
 description: >
   사용자 요청을 해석해
   docs/use-case-harvests/<domain>/<task>/use-case-harvest.md 를
-  생성 또는 점진 갱신하고,
+  호출마다 새로 생성하고,
   coverage gate 및 oracle 진행 가능 상태를 판정하는 스킬
 ---
 
 # Use Case Harvester
 
 이 스킬은 사용자의 최신 작업 요청을 해석하여  
-`docs/use-case-harvests/<domain>/<task>/use-case-harvest.md` 를 생성하거나 갱신한다.
+`docs/use-case-harvests/<domain>/<task>/use-case-harvest.md` 를 호출마다 새 task 경로로 생성한다.
 
 이 스킬의 목적은 다음이다.
 
@@ -46,8 +46,8 @@ description: >
 이 스킬의 목표는 다음을 안전하게 수행하는 것이다.
 
 - 사용자 프롬프트를 해석한다
-- 기존 harvest 문서가 있으면 그 문서를 점진적으로 개선한다
-- 없으면 새 문서를 생성한다
+- 호출 시점의 새 task identity를 생성한다
+- 해당 task 경로에 새 harvest/work-unit 문서를 생성한다
 - 유스케이스를 가능한 한 완전하게 수집한다
 - 프롬프트 요구사항과 유스케이스 간 coverage mapping을 만든다
 - coverage gate를 YES / PARTIAL / NO 로 판정한다
@@ -65,7 +65,7 @@ description: >
 - oracle 또는 downstream agent 호출하기
 - 코드 수정하기
 - 프롬프트에 없는 기능을 임의 확정하기
-- 기존 harvest 문서를 근거 없이 초기화하기
+- 기존 run의 harvest 문서를 덮어쓰기
 
 ---
 
@@ -73,15 +73,29 @@ description: >
 
 - 반드시 `AGENTS.md` 와 `ARCHITECTURE.md` 를 따른다
 - 기본 구현 스택(언어/프레임워크/런타임)이 명시되지 않았으면, harvest 고도화 전에 해당 항목을 사용자에게 먼저 확인한다
-- 기존 `use-case-harvest.md` 가 있으면 먼저 읽는다
-- 기존 구조와 수동 메모를 가능한 한 보존한다
-- confirmed use case를 근거 없이 제거하지 않는다
+- 최신 run 이전 산출물을 참고할 수 있으나, 기존 run 문서를 직접 수정하지 않는다
 - 충돌은 삭제하지 말고 `Needs Review` 에 기록한다
 - work unit 허브 문서 `docs/work-units/<domain>/<task>/index.md`를 함께 생성/갱신한다
 - harvest 문서는 work unit 허브 문서로 backlink를 포함한다
 - 랜덤 id를 만들지 않는다
 - 모든 문서는 path 기반 deterministic id를 사용한다
 - coverage gate가 YES여도 사용자 승인 전에는 downstream을 시작하지 않는다
+
+---
+
+## Invocation Identity Rule
+
+- harvester 호출마다 새로운 `<task>` identity를 만든다.
+- 권장 형식: `<prompt-summary-slug>-YYYYMMDD-HHMM`
+- `<prompt-summary-slug>`는 최신 유저 프롬프트의 핵심 목적을 짧게 요약한 slug다.
+- slug 규칙:
+  - 소문자 kebab-case
+  - 허용 문자: `a-z`, `0-9`, `-`
+  - 단어 수 권장 3~8개, 최대 60자
+  - random suffix 금지
+- timestamp는 호출 시점 기준이며 random suffix는 금지한다.
+- 기존 run 문서는 append-only로 보존한다.
+- 오케스트레이션은 해당 run의 `<task>` 경로 문서를 기준으로 진행하면서 stage 문서를 수정/추가한다.
 
 ---
 
@@ -97,8 +111,7 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 
 규칙:
 
-- 기존 문서가 있으면 기존 경로를 유지한다
-- domain과 task는 프롬프트와 기존 문서 문맥 기준으로 유지한다
+- domain은 유지하되 task는 호출마다 새 identity를 사용한다
 - 경로를 임의 추측하지 않는다
 - index.md에는 harvest 문서 링크와 오케스트레이션 단계 상태를 기록한다
 
@@ -115,8 +128,7 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 규칙:
 
 - 파일 경로에서 domain / task를 derive 한다
-- 기존 문서에 id가 이미 있으면 identity가 유지되는 한 그 id를 유지한다
-- 새 문서를 만들 때만 path 기반 id를 새로 쓴다
+- run별 새 경로를 사용하므로 run별 새 id를 생성한다
 - random id는 금지한다
 
 ---
@@ -126,8 +138,8 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 이 스킬은 아래 순서로 입력을 해석한다.
 
 1. 사용자의 최신 프롬프트
-2. 기존 `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
-3. 기존 `docs/work-units/<domain>/<task>/index.md`
+2. 가장 최신 run의 `docs/use-case-harvests/<domain>/<prev-task>/use-case-harvest.md` (있는 경우, 참고용)
+3. 가장 최신 run의 `docs/work-units/<domain>/<prev-task>/index.md` (있는 경우, 참고용)
 4. `AGENTS.md`
 5. `ARCHITECTURE.md`
 6. 관련 `docs/*`
@@ -347,7 +359,7 @@ last_updated: <YYYY-MM-DD:HH:mm>
 - coverage_gate == NO
 - coverage_gate == PARTIAL
 - 기존 문서와 새 정보가 충돌하지만 자동 해결 근거가 부족함
-- domain/task identity가 불명확해서 기존 문서 identity 보존 여부를 결정할 수 없음
+- domain/task identity를 새 run 경로로 결정할 수 없음
 
 종료 시에도 반드시 문서는 저장하거나 갱신한다.
 

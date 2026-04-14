@@ -133,14 +133,17 @@ description: >
 
 - `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
 - `docs/work-units/<domain>/<task>/index.md`
-- `docs/product-specs/<domain>/<task>/domain-boundary.md`
-- `docs/product-specs/<domain>/<task>/use-cases.md`
-- `docs/design-docs/<domain>/<task>/event-storming.md`
-- `docs/design-docs/<domain>/<task>/aggregate-design.md`
-- `docs/design-docs/<domain>/<task>/bounded-context.md`
-- `docs/design-docs/<domain>/<task>/detailed-design.md`
+- `docs/product-specs/<domain>/<base-task>/domain-boundary.md`
+- `docs/product-specs/<domain>/<base-task>/use-cases.md`
+- `docs/design-docs/<domain>/<base-task>/event-storming.md`
+- `docs/design-docs/<domain>/<base-task>/aggregate-design.md`
+- `docs/design-docs/<domain>/<base-task>/bounded-context.md`
+- `docs/design-docs/<domain>/<base-task>/detailed-design.md`
 - `docs/exec-plans/active/<domain>/<task>/plan.md`
 - `docs/exec-plans/active/<domain>/<task>/implementation-log.md`
+
+여기서 `<base-task>`는 run suffix가 제거된 canonical task다.
+예: `note-management-program-20260414-0959` -> `note-management-program`
 
 문서 탐색은 grep 패턴을 우선 사용하고, 보조 탐색으로 work unit 허브 backlink를 사용한다.
 
@@ -551,12 +554,12 @@ status: completed
 # Primary Output Paths
 - docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
 - docs/work-units/<domain>/<task>/index.md
-- docs/product-specs/<domain>/<task>/domain-boundary.md
-- docs/product-specs/<domain>/<task>/use-cases.md
-- docs/design-docs/<domain>/<task>/event-storming.md
-- docs/design-docs/<domain>/<task>/aggregate-design.md
-- docs/design-docs/<domain>/<task>/bounded-context.md
-- docs/design-docs/<domain>/<task>/detailed-design.md
+- docs/product-specs/<domain>/<base-task>/domain-boundary.md
+- docs/product-specs/<domain>/<base-task>/use-cases.md
+- docs/design-docs/<domain>/<base-task>/event-storming.md
+- docs/design-docs/<domain>/<base-task>/aggregate-design.md
+- docs/design-docs/<domain>/<base-task>/bounded-context.md
+- docs/design-docs/<domain>/<base-task>/detailed-design.md
 - docs/exec-plans/completed/<domain>/<task>/plan.md
 - docs/exec-plans/completed/<domain>/<task>/implementation-log.md
 
