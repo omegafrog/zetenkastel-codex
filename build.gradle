@@ -28,3 +28,26 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.register('e2eNpmInstall', Exec) {
+    group = 'verification'
+    description = 'Installs npm dependencies required for Playwright e2e tests.'
+    workingDir = file('e2e')
+    commandLine 'npm', 'install'
+}
+
+tasks.register('e2eInstallBrowsers', Exec) {
+    group = 'verification'
+    description = 'Installs Playwright Chromium browser for e2e tests.'
+    dependsOn tasks.named('e2eNpmInstall')
+    workingDir = file('e2e')
+    commandLine 'npx', 'playwright', 'install', 'chromium'
+}
+
+tasks.register('e2eTest', Exec) {
+    group = 'verification'
+    description = 'Runs Playwright e2e tests.'
+    dependsOn tasks.named('e2eInstallBrowsers')
+    workingDir = file('e2e')
+    commandLine 'npx', 'playwright', 'test'
+}

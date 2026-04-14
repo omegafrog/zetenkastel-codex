@@ -1,0 +1,353 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronRight, Search, Sparkles } from "lucide-react";
+import {
+  createNote,
+  deleteNote,
+  fetchBacklinks,
+  fetchNote,
+  fetchNotes,
+  fetchNoteTypes,
+  fetchRecommendations,
+  searchNotes,
+  updateNote
+} from "@/lib/api";
+import type { Note, Recommendation } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { GraphView } from "@/components/graph-view";
+
+interface FormState {
+  type: string;
+  fileName: string;
+  title: string;
+  tags: string;
+  links: string;
+  content: string;
+}
+
+const emptyForm: FormState = {
+  type: "",
+  fileName: "",
+  title: "",
+  tags: "",
+  links: "",
+  content: ""
+};
+
+function toFormState(note: Note): FormState {
+  return {
+    type: note.type,
+    fileName: note.fileName,
+    title: note.title,
+    tags: note.tags.join(","),
+    links: note.links.join(","),
+    content: note.content
+  };
+}
+
+function parseCsv(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<"notes" | "graph">("notes");
+  const [types, setTypes] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [query, setQuery] = useState("");
+  const [tag, setTag] = useState("");
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [backlinks, setBacklinks] = useState<Note[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [foldState, setFoldState] = useState<Record<string, boolean>>({});
+  const [status, setStatus] = useState("초기 로딩 중...");
+
+  const groupedNotes = useMemo(() => {
+    const grouped: Record<string, Note[]> = {};
+    for (const type of types) {
+      grouped[type] = [];
+    }
+    for (const note of notes) {
+      if (!grouped[note.type]) {
+        grouped[note.type] = [];
+      }
+      grouped[note.type].push(note);
+    }
+    return grouped;
+  }, [notes, types]);
+
+  const setMessage = (message: string) => setStatus(message);
+
+  const loadNotes = useCallback(async () => {
+    const loaded = await fetchNotes();
+    setNotes(loaded);
+    setMessage(`${loaded.length}개 노트 로드 완료`);
+  }, []);
+
+  useEffect(() => {
+    const bootstrap = async () => {
+      try {
+        const loadedTypes = await fetchNoteTypes();
+        setTypes(loadedTypes);
+        setFoldState(Object.fromEntries(loadedTypes.map((type) => [type, true])));
+        setForm((prev) => ({ ...prev, type: loadedTypes[0] ?? "" }));
+        await loadNotes();
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "초기화 실패");
+      }
+    };
+    void bootstrap();
+  }, [loadNotes]);
+
+  const selectNote = async (note: Note) => {
+    try {
+      const detailed = await fetchNote(note.type, note.fileName);
+      setForm(toFormState(detailed));
+      const linkedBack = await fetchBacklinks(detailed.type, detailed.fileName);
+      setBacklinks(linkedBack);
+      setRecommendations([]);
+      setMessage(`${detailed.id} 선택됨`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "노트 조회 실패");
+    }
+  };
+
+  const executeSearch = async () => {
+    try {
+      const searched = await searchNotes(query, tag);
+      setNotes(searched);
+      setMessage(`검색 결과 ${searched.length}건`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "검색 실패");
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!form.fileName.trim()) {
+      setMessage("파일명을 입력하세요.");
+      return;
+    }
+    try {
+      await createNote({
+        type: form.type,
+        fileName: form.fileName.trim(),
+        title: form.title,
+        tags: parseCsv(form.tags),
+        links: parseCsv(form.links),
+        content: form.content
+      });
+      await loadNotes();
+      window.alert("생성 완료");
+      setMessage("노트 생성 완료");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "생성 실패");
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await updateNote({
+        type: form.type,
+        fileName: form.fileName.trim(),
+        title: form.title,
+        tags: parseCsv(form.tags),
+        links: parseCsv(form.links),
+        content: form.content
+      });
+      await loadNotes();
+      window.alert("수정 완료");
+      setMessage("노트 수정 완료");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "수정 실패");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteNote(form.type, form.fileName.trim());
+      await loadNotes();
+      setBacklinks([]);
+      setRecommendations([]);
+      setForm((prev) => ({ ...prev, fileName: "", title: "", tags: "", links: "", content: "" }));
+      window.alert("삭제 완료");
+      setMessage("노트 삭제 완료");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "삭제 실패");
+    }
+  };
+
+  const handleRecommend = async () => {
+    try {
+      const rec = await fetchRecommendations(form.type, form.fileName.trim());
+      setRecommendations(rec);
+      setMessage(`추천 ${rec.length}건`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "추천 실패");
+    }
+  };
+
+  const toggleFold = (type: string) => {
+    setFoldState((prev) => ({ ...prev, [type]: !prev[type] }));
+  };
+
+  return (
+    <main className="min-h-screen bg-grid px-4 py-6 md:px-8">
+      <div className="mx-auto grid max-w-[1280px] gap-4 lg:grid-cols-[360px_1fr]">
+        <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-2xl">Zettelkasten Studio</CardTitle>
+            <CardDescription>shadcn/ui + React + Vite</CardDescription>
+            <div className="mt-2 flex gap-2">
+              <Button variant={activeTab === "notes" ? "default" : "secondary"} onClick={() => setActiveTab("notes")}>노트</Button>
+              <Button variant={activeTab === "graph" ? "default" : "secondary"} onClick={() => setActiveTab("graph")}>그래프</Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목/내용/태그 검색어" />
+              <Input value={tag} onChange={(event) => setTag(event.target.value)} placeholder="태그 정확 검색" />
+              <Button className="gap-2" onClick={executeSearch}>
+                <Search className="h-4 w-4" /> 검색
+              </Button>
+              <Button variant="secondary" onClick={() => void loadNotes()}>
+                전체 새로고침
+              </Button>
+            </div>
+
+            <div id="noteList" className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+              <p className="text-sm font-semibold">노트 목록 (타입별 폴드)</p>
+              {types.map((type) => (
+                <Collapsible key={type} open={foldState[type]} onOpenChange={() => toggleFold(type)}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between px-2">
+                      <span>{type}</span>
+                      {foldState[type] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-1 px-2 pb-2">
+                    {(groupedNotes[type] ?? []).length === 0 ? (
+                      <p className="rounded-md bg-white p-2 text-xs text-muted-foreground">노트 없음</p>
+                    ) : (
+                      groupedNotes[type].map((note) => (
+                        <button
+                          key={note.id}
+                          className="w-full rounded-md border border-border bg-white p-2 text-left hover:border-primary"
+                          onClick={() => void selectNote(note)}
+                        >
+                          <p className="text-sm font-medium">{note.title || note.fileName}</p>
+                          <p className="text-xs text-muted-foreground">{note.id}</p>
+                        </button>
+                      ))
+                    )}
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+            </div>
+            <p className="rounded-md bg-secondary p-2 text-xs text-secondary-foreground">{status}</p>
+          </CardContent>
+        </Card>
+
+        {activeTab === "graph" ? (
+          <GraphView />
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+            <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
+              <CardHeader>
+                <CardTitle>노트 편집</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-sm">노트 타입</label>
+                    <Select id="type" value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))}>
+                      {types.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm">파일명</label>
+                    <Input id="fileName" value={form.fileName} onChange={(event) => setForm((prev) => ({ ...prev, fileName: event.target.value }))} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm">제목</label>
+                  <Input id="title" value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm">태그 (쉼표)</label>
+                  <Input id="tags" value={form.tags} onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm">링크 (pathKey, 쉼표)</label>
+                  <Input id="links" value={form.links} onChange={(event) => setForm((prev) => ({ ...prev, links: event.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm">내용</label>
+                  <Textarea id="content" value={form.content} onChange={(event) => setForm((prev) => ({ ...prev, content: event.target.value }))} className="min-h-[220px]" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={() => void handleCreate()}>생성</Button>
+                  <Button onClick={() => void handleUpdate()}>수정</Button>
+                  <Button variant="secondary" onClick={() => void handleDelete()}>
+                    삭제
+                  </Button>
+                  <Button variant="secondary" className="gap-2" onClick={() => void handleRecommend()}>
+                    <Sparkles className="h-4 w-4" /> 링크 추천
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-4">
+              <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-base">백링크</CardTitle>
+                </CardHeader>
+                <CardContent id="backlinks" className="space-y-2">
+                  {backlinks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">결과 없음</p>
+                  ) : (
+                    backlinks.map((note) => (
+                      <div key={note.id} className="rounded-md border border-border bg-white p-2">
+                        <p className="text-sm font-medium">{note.title || note.fileName}</p>
+                        <p className="text-xs text-muted-foreground">{note.id}</p>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-base">추천 링크</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {recommendations.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">결과 없음</p>
+                  ) : (
+                    recommendations.map((item) => (
+                      <div key={item.note.id} className="rounded-md border border-border bg-white p-2">
+                        <p className="text-sm font-medium">{item.note.title || item.note.fileName}</p>
+                        <p className="text-xs text-muted-foreground">{item.note.id}</p>
+                        <p className="text-xs text-muted-foreground">score: {item.score.toFixed(3)}</p>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

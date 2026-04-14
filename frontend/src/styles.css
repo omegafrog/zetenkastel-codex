@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 38 58% 95%;
+  --foreground: 215 37% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 37% 12%;
+  --primary: 173 77% 28%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 35 100% 92%;
+  --secondary-foreground: 214 41% 18%;
+  --muted: 36 32% 90%;
+  --muted-foreground: 215 16% 38%;
+  --border: 35 38% 80%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", "Pretendard", sans-serif;
+  color: hsl(var(--foreground));
+}
+
+.bg-grid {
+  background:
+    radial-gradient(circle at 5% 10%, rgba(15, 118, 110, 0.16), transparent 28%),
+    radial-gradient(circle at 90% 0%, rgba(251, 191, 36, 0.18), transparent 24%),
+    linear-gradient(140deg, #fff8ed 0%, #f5ecdf 40%, #e7f5f2 100%);
+}

@@ -7,7 +7,7 @@ domain: zetenkastel
 task: note-management-program
 coverage_gate: YES
 next_step: wait-for-user-approval
-last_updated: 2026-04-13:23:16
+last_updated: 2026-04-14:08:59
 
 # Prompt Interpretation
 - User Goal
@@ -22,19 +22,25 @@ last_updated: 2026-04-13:23:16
   - 검색은 태그 + 제목 + 내용 기준으로 지원한다.
   - 그래프 뷰를 제공한다.
   - 우선 플랫폼은 웹으로 한다.
+  - 현재 UI를 `shadcn/ui` 기반으로 정비한다.
+  - 노트 목록/탐색 화면에서 노트 종류별로 폴드(접기/펼치기) 정리한다.
+- Preferred Implementation Stack (language/framework/runtime)
+  - Backend: Java 21 + Spring Boot
+  - Frontend: React + Vite (사용자 확정)
 - Constraints
   - 사용자 범위는 1인용이며 인증은 없다.
   - 백업은 현재 범위에서 제외한다.
   - 외부 클라우드/원격 저장소 요구는 없다.
-  - 기본 구현 스택은 `Java + Spring Boot`로 확정한다. (사용자 승인)
+  - `shadcn/ui`는 React + Vite 프론트엔드에 적용한다.
 - Expected Outcome
   - 웹에서 노트를 생성/수정/삭제/조회하고, 노트 간 연결 상태(백링크/추천/그래프)와 검색 결과를 사용할 수 있다.
+  - UI가 `shadcn/ui` 컴포넌트 기반으로 일관되게 제공되고, 노트 타입별 폴드 탐색이 가능하다.
 - Explicit Non-goals
   - 인증/인가 기능
   - 백업 기능
 
 # Candidate Use Cases
-- UC-01 ~ UC-08을 candidate로 수집 후 confirmed 판정.
+- UC-01 ~ UC-10을 candidate로 수집 후 confirmed 판정.
 
 # Confirmed Use Cases
 ## UC-01: 노트 생성
@@ -193,6 +199,45 @@ last_updated: 2026-04-13:23:16
   - "그래프 뷰까지 해줘"
 - Status: confirmed
 
+## UC-09: shadcn/ui 기반 UI 전환
+- Primary Actor: 단일 사용자
+- Goal: 기존 웹 화면을 `shadcn/ui` 컴포넌트 기반으로 일관성 있게 사용한다.
+- Preconditions
+  - React + Vite 프론트엔드 빌드 환경이 준비되어 있다.
+- Trigger
+  - 사용자가 노트 목록/상세/편집/검색/그래프 화면을 연다.
+- Main Success Flow
+  1. 시스템이 `shadcn/ui` 컴포넌트 체계를 사용해 화면을 렌더링한다.
+  2. 시스템이 화면 간 공통 UI 패턴(버튼, 입력, 카드, 패널)을 일관되게 제공한다.
+  3. 사용자가 기존 기능(CRUD/검색/링크/그래프)을 동일하게 수행한다.
+- Alternative / Failure Flow
+  - `shadcn/ui` 컴포넌트 적용 중 일부 화면 누락 시 해당 화면은 기존 UI로 fallback되고 보완 대상에 기록한다.
+- Success Outcome
+  - 사용자 관점에서 일관된 컴포넌트 기반 UI를 사용한다.
+- Source Prompt Evidence
+  - "현재 ui를 shadcn을 사용하도록 수정"
+- Status: confirmed
+
+## UC-10: 노트 타입별 폴드 탐색
+- Primary Actor: 단일 사용자
+- Goal: 노트 목록을 타입별 접기/펼치기로 정리해 탐색 효율을 높인다.
+- Preconditions
+  - 노트가 하나 이상 존재하며 타입 정보가 식별 가능하다.
+- Trigger
+  - 사용자가 노트 목록/사이드바에서 타입 섹션을 펼치거나 접는다.
+- Main Success Flow
+  1. 시스템이 노트를 타입별 섹션으로 그룹화해 표시한다.
+  2. 사용자가 특정 타입 섹션을 접거나 펼친다.
+  3. 시스템이 폴드 상태를 반영한 목록을 즉시 렌더링한다.
+- Alternative / Failure Flow
+  - 특정 타입에 노트가 없으면 빈 상태로 표시한다.
+  - 폴드 상태 저장 실패 시 기본 펼침 상태로 렌더링한다.
+- Success Outcome
+  - 사용자가 원하는 노트 타입 섹션에 빠르게 접근한다.
+- Source Prompt Evidence
+  - "노트 종류에 따라 폴드되어 정리되게"
+- Status: confirmed
+
 # Coverage Mapping
 - "제텐카스텔 기반 노트 프로그램" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08
 - "노트 타입 inbox/fleeting notes/literature notes/projects/area/archives/maps-of-content/references/templates/attachments" -> UC-01, UC-02, UC-03, UC-04
@@ -205,16 +250,19 @@ last_updated: 2026-04-13:23:16
 - "플랫폼은 웹" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08
 - "백업 불필요" -> 명시적 제외 범위(Non-goal)
 - "모든 노트 타입 CRUD + 백링크 + 그래프 뷰" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-08
+- "현재 UI를 shadcn 사용으로 수정" -> UC-09
+- "노트 종류에 따라 폴드되어 정리" -> UC-10
 - Coverage Gaps
-  - 없음 (링크 자동 연결 또는 추천 제공 요구를 모두 만족하도록 설계 가능)
+  - 없음 (기존 기능 요구 + UI 전환/폴드 탐색 요구 모두 confirmed use case로 매핑됨)
 
 # Coverage Gate
 - Ready for Event Storming: YES
 - Why
   - 핵심 사용자 목표와 기능 범위가 confirmed use case로 커버되었다.
   - 실패/예외 흐름, 외부 시스템(로컬 파일 시스템), 범위/제외 범위 구분이 반영되었다.
-  - 기본 구현 스택(`Java + Spring Boot`)이 사용자 승인으로 확정되었다.
+  - 기본 구현 스택(`Java + Spring Boot`, `React + Vite`)이 사용자 승인으로 확정되었다.
   - 링크 정책은 \"자동 연결 또는 연결 추천\" 요구를 충족하는 범위로 설계 가능하다.
+  - UI 전환(`shadcn/ui`)과 타입별 폴드 탐색 요구가 별도 confirmed use case로 반영되었다.
 - Blocking Conditions
   - 없음
 
@@ -223,6 +271,7 @@ last_updated: 2026-04-13:23:16
 
 # Needs Review
 - 기존 work-unit은 `completed` 상태였으나, 사용자의 신규/확장 요청으로 동일 identity에서 재활성화가 필요함.
+- 기존 정적 페이지(`src/main/resources/static/*.html`)와 신규 React + Vite UI의 공존/전환 전략은 구현 단계에서 결정 필요.
 
 # Rejected Use Cases
 - 다중 사용자 협업/권한 관리 (프롬프트에 없음)
@@ -232,6 +281,7 @@ last_updated: 2026-04-13:23:16
 # Missing-but-Plausible Use Cases
 - 대량 노트에서 그래프 필터링/클러스터링 고도화
 - 링크 추천 결과에 대한 사용자 피드백(수락/거절) 학습
+- 폴드 상태의 세션 간 유지(local storage 등)
 
 # Next Revision Focus
 - 사용자 승인 후 오케스트레이션(`oracle`) 진행 여부를 결정한다.
@@ -247,9 +297,13 @@ last_updated: 2026-04-13:23:16
   - UC-06: 링크 자동 연결 또는 추천
   - UC-07: 검색(태그/제목/내용)
   - UC-08: 그래프 뷰 탐색
+  - UC-09: shadcn/ui 기반 UI 전환
+  - UC-10: 노트 타입별 폴드 탐색
 - Assumptions Forbidden for Oracle
   - 저장소를 로컬 파일 외 다른 저장소로 확장하지 않는다.
   - 인증/백업 기능을 범위에 임의 추가하지 않는다.
+  - Frontend 스택을 React + Vite 이외로 임의 변경하지 않는다.
+  - 타입별 폴드 요구를 단순 정렬/필터로 대체하지 않는다.
 - User Approval Required Before Orchestration: YES
 
 # Backlinks
