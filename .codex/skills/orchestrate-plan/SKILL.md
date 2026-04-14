@@ -80,7 +80,7 @@ description: >
 - 구현 결과 기반 문서 동기화
 - 최종 문서 검증
 - 완료 처리
-- PR 생성 또는 PR 초안 생성
+- PR 생성 (draft 금지)
 
 ## Non-Goals
 
@@ -492,7 +492,7 @@ stopped_at: doc_verify_after_execute
 - 이동 후 grep 탐색성이 깨지면 문서 경로/탐색 힌트만 최소 수정한다.
 - 코드 파일은 수정하지 않는다.
 - PR 생성이 가능하면 생성한다.
-- 실제 PR 생성이 불가능하면 즉시 사용할 수 있는 PR 제목과 본문 초안을 만든다.
+- 실제 PR 생성이 불가능하면 즉시 사용할 수 있는 PR 제목과 본문을 만든다.
 
 강제 규칙:
 
@@ -568,7 +568,7 @@ status: completed
 
 # Closure Result
 - closure verdict: COMPLETED
-- pr result: <created | draft-generated>
+- pr result: <created | body-prepared>
 ```
 
 ## Invocation Pattern
