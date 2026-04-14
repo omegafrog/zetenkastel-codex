@@ -11,6 +11,7 @@ plan.md를 기준으로만 작업한다.
 모든 구현은 테스트를 먼저 작성하고 그 테스트를 통과시키는 방식(TDD)으로 진행한다.
 
 반드시 AGENTS.md, ARCHITECTURE.md, plan.md를 따른다.
+`.codex/repository-settings.md`가 있으면 해당 repository-specific 규칙도 따른다.
 
 
 # Workflow Contract (Single Source of Truth)
@@ -43,6 +44,8 @@ docs/exec-plans/active/<domain>/<task>/plan.md
 plan.md의 Progress 체크박스를 기준으로 작업을 진행한다.
 - Read plan.md Properties.doc_path before implementation.
 - Treat plan.md doc_path as the canonical execution plan reference.
+- Read `.codex/repository-settings.md` if present.
+- Read `.codex/test-gate.yaml` if present so test strategy aligns with downstream test_gate stage.
 
 ---
 
@@ -267,6 +270,12 @@ If plan.md has no doc_path, execution must be treated as BLOCKED.
 ## Escalation Decision
 - continue execution | stop and hand off
 - if stop, which agent should act next and why
+
+## Test Gate Handoff (Required)
+- recommended test stages for test_gate
+- recommended commands (repository-specific)
+- known flaky points or environment constraints
+- changed files likely affecting tests
 
 ---
 

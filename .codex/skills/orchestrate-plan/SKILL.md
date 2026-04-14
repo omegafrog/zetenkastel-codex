@@ -15,9 +15,10 @@ description: >
 3. doc_writer
 4. doc_verify
 5. executor
-6. execute_writer
-7. doc_verify
-8. closer
+6. test_gate
+7. execute_writer
+8. doc_verify
+9. closer
 
 이 순서는 반드시 유지한다.
 
@@ -28,6 +29,10 @@ description: >
 - coverage_gate: YES | PARTIAL | NO
 
 ### Verification Verdict
+
+- PASS | FAIL | BLOCKED
+
+### Test Gate Verdict
 
 - PASS | FAIL | BLOCKED
 
@@ -50,6 +55,7 @@ description: >
 - `.codex/agents/doc_writer.toml`
 - `.codex/agents/doc_verify.toml`
 - `.codex/agents/executor.toml`
+- `.codex/agents/test_gate.toml`
 - `.codex/agents/execute_writer.toml`
 - `.codex/agents/closer.toml`
 - `.codex/contracts/workflow-contract.md`
@@ -58,7 +64,7 @@ description: >
 
 최신 흐름은 다음이다.
 
-`use_case_harvester → oracle → doc_writer → doc_verify → executor → execute_writer → doc_verify → closer`
+`use_case_harvester → oracle → doc_writer → doc_verify → executor → test_gate → execute_writer → doc_verify → closer`
 
 ## Primary Goal
 
@@ -96,8 +102,12 @@ description: >
 - 모든 문서는 프로젝트 루트 기준 `doc_path`를 가져야 한다.
 - `doc_path`는 경로+파일명을 포함해야 한다.
 - 문서 식별에 id를 사용하지 않는다.
+- 오케스트레이션 1회 실행은 하나의 work unit으로 기록한다.
+- work unit 허브 문서는 `docs/work-units/<domain>/<task>/index.md`를 사용한다.
+- stage 산출 문서는 work unit 허브로 backlink를 포함한다.
 - executor는 반드시 `docs/exec-plans/active/<domain>/<task>/plan.md` 기준으로만 구현한다.
 - execute_writer는 반드시 executor 결과와 실제 diff를 함께 기준으로 문서를 갱신한다.
+- test_gate는 executor 이후 repository-specific 테스트를 실행하고 PASS일 때만 다음 단계로 진행한다.
 - closer는 모든 완료 조건이 충족될 때만 완료 처리한다.
 
 ## Document Reference Rule
@@ -113,12 +123,16 @@ description: >
 - `doc_path`는 프로젝트 루트 기준 상대경로여야 한다.
 - 문서 id 필드는 사용하지 않는다.
 - active/completed 이동 시 문서 식별은 이동된 `doc_path` 기준으로 판단한다.
+- work unit 허브 문서는 `docs/work-units/<domain>/<task>/index.md`로 고정한다.
+- 허브 문서는 각 stage 문서로 forward link를 가진다.
+- 각 stage 문서는 허브 문서로 backlink를 가진다.
 
 ## Expected Document Paths
 
 오케스트레이션 산출물은 반드시 아래 경로 규칙을 따른다.
 
 - `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
+- `docs/work-units/<domain>/<task>/index.md`
 - `docs/product-specs/<domain>/<task>/domain-boundary.md`
 - `docs/product-specs/<domain>/<task>/use-cases.md`
 - `docs/design-docs/<domain>/<task>/event-storming.md`
@@ -128,7 +142,7 @@ description: >
 - `docs/exec-plans/active/<domain>/<task>/plan.md`
 - `docs/exec-plans/active/<domain>/<task>/implementation-log.md`
 
-문서 탐색은 백링크/수동 링크보다 grep 패턴을 우선 사용한다.
+문서 탐색은 grep 패턴을 우선 사용하고, 보조 탐색으로 work unit 허브 backlink를 사용한다.
 
 ## Hard Gate Before Oracle And Downstream Steps
 
@@ -158,6 +172,7 @@ description: >
 수행:
 
 - `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md` 를 생성 또는 갱신한다.
+- `docs/work-units/<domain>/<task>/index.md`를 생성 또는 갱신한다.
 - 문서에는 반드시 다음을 포함해야 한다.
   - `# Properties`
   - `doc_path`
@@ -173,6 +188,7 @@ description: >
 - Coverage Mapping을 기록한다.
 - Coverage Gate를 기록한다.
 - Oracle Handoff 섹션을 기록한다.
+- work unit index.md에 harvest 단계 상태와 문서 링크를 기록한다.
 
 판정:
 
@@ -247,6 +263,7 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 
 반드시 생성 또는 갱신 대상에 포함:
 
+- `docs/work-units/<domain>/<task>/index.md`
 - `docs/product-specs/<domain>/<task>/domain-boundary.md`
 - `docs/product-specs/<domain>/<task>/use-cases.md`
 - `docs/design-docs/<domain>/<task>/event-storming.md`
@@ -261,6 +278,7 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 - plan.md는 단일 진입점 역할을 유지한다.
 - 문서 간 탐색은 grep 패턴을 우선한다.
 - doc_path를 포함한다.
+- 각 stage 문서는 `Backlinks` 섹션에서 work unit index를 가리킨다.
 - 수동 메모가 있으면 근거 없이 삭제하지 않는다.
 
 ### Step 5. Run doc_verify
@@ -274,9 +292,17 @@ oracle 산출물을 실제 docs 파일로 구조화해 기록한다.
 - doc_path 존재 여부
 - doc_path와 실제 파일 경로 일치 여부
 - grep 기반 탐색 가능 여부
+- work unit index 존재 여부
+- index forward links와 stage 문서 backlinks 정합성
 - 역할 분리 위반 여부
 - use-case / event-storming / aggregate / bounded context / detailed design 사이의 정합성
 - grep 기반 문서 탐색 힌트 유지 여부
+- DDD 깊이 검증:
+  - event-storming의 UC별 Start Command/Actors/External Systems/Events/Policies/Follow-up Commands/Sync-Async/Cross-Context 완전성
+  - aggregate-design의 Aggregate별 Responsibility/Commands/Events/Entities-VO/Invariants/Transaction Rationale 완전성
+  - detailed-design의 app/domain/port/adapter 분리 명시 여부
+- ARCHITECTURE.md 계층 의존 방향(ui→app→domain, app→port, adapter→port) 문서/코드 정합성
+- Gradle 기반 아키텍처 의존성 테스트 존재 및 실행 근거 여부
 
 판정:
 
@@ -331,7 +357,44 @@ stopped_at: doc_verify_before_execute
 
 실패 시 숨기지 말고 즉시 중단한다.
 
-### Step 7. Run execute_writer
+### Step 7. Run test_gate
+
+목표:
+executor 이후 repository-specific 테스트를 실행하여 다음 단계 진행 가능 여부를 판정한다.
+
+강제 규칙:
+
+- `.codex/test-gate.yaml`이 존재하면 해당 stage를 순서대로 실행한다.
+- `.codex/test-gate.yaml`이 없으면 `.codex/repository-settings.md` 또는 repo 자동탐지 규칙으로 커맨드를 결정한다.
+- stage 하나라도 실패하면 FAIL로 즉시 중단한다.
+- 환경/권한 문제로 실행 불가하면 BLOCKED로 즉시 중단한다.
+- PASS일 때만 execute_writer 단계로 진행한다.
+
+출력에는 반드시 아래를 포함한다:
+
+- test_gate_verdict: PASS | FAIL | BLOCKED
+- stage별 실행 커맨드
+- stage별 핵심 로그 증거
+- 다음 액션 (execute_writer 진행 또는 executor 복귀)
+
+중단 시 아래 형식을 따른다.
+
+```md
+# Orchestration Status
+status: stopped
+stopped_at: test_gate
+
+# Reason
+- repository-specific test gate failed or blocked
+
+# Evidence
+- <stage name + command + 핵심 로그>
+
+# Next Required Action
+- executor 단계로 되돌아가 실패 원인을 수정한다
+```
+
+### Step 8. Run execute_writer
 
 목표:
 executor 결과와 실제 diff를 바탕으로 docs를 동기화하고 implementation-log를 작성 또는 갱신한다.
@@ -345,6 +408,9 @@ executor 결과와 실제 diff를 바탕으로 docs를 동기화하고 implement
 - code-to-plan mapping 기록
 - documentation updates 기록
 - unresolved mismatches 기록
+- work unit index.md에 실행/검증/완료 상태를 반영
+- oracle/doc_writer에서 정의된 UC/Policy/Aggregate 구조를 요약/압축 없이 유지
+- 템플릿 필수 섹션 누락 금지 (누락 시 `TBD` + 근거 기록)
 
 필수 문서:
 
@@ -365,7 +431,7 @@ implementation-log는 최소한 다음 섹션을 포함해야 한다.
 - Remaining Gaps
 - Risks & Follow-ups
 
-### Step 8. Run doc_verify Again
+### Step 9. Run doc_verify Again
 
 목표:
 최종 상태의 docs가 code와 동기화되어 있는지, implementation-log와 traceability가 충분한지, PR 준비 상태인지 검증한다.
@@ -378,6 +444,8 @@ implementation-log는 최소한 다음 섹션을 포함해야 한다.
 - stale docs 없음
 - plan Progress와 실제 구현 상태 일치 여부
 - PR readiness 상태
+- DDD 깊이/구조가 실행 후에도 유지되는지
+- 아키텍처 의존성 테스트 결과(PASS/FAIL)와 위반 근거 경로
 
 판정:
 
@@ -402,7 +470,7 @@ stopped_at: doc_verify_after_execute
 - implementation-log, plan, docs traceability를 수정한다
 ```
 
-### Step 9. Run closer
+### Step 10. Run closer
 
 목표:
 모든 완료 조건이 만족될 때만 작업을 completed로 전환하고 PR을 정리한다.
@@ -411,13 +479,14 @@ stopped_at: doc_verify_after_execute
 
 1. 해당 세션의 `plan.md` checkbox가 모두 완료 상태다.
 2. 최종 doc_verify 결과가 PASS 상태다.
-3. 문서 동기화 검증이 PASS 상태다.
+3. test_gate 결과가 PASS 상태다.
 4. PR readiness가 PR_READY 상태다.
 
 수행:
 
 - 관련 작업 문서 status를 completed로 갱신한다.
 - 필요한 완료 메타데이터를 기록한다.
+- work unit index.md에 closure verdict를 기록한다.
 - `docs/exec-plans/active/<domain>/<task>/` 아래의 관련 실행 문서를 completed 경로로 이동한다.
 - 이동 시 문서 id는 변경하지 않는다.
 - 이동 후 grep 탐색성이 깨지면 문서 경로/탐색 힌트만 최소 수정한다.
@@ -439,6 +508,7 @@ stopped_at: doc_verify_after_execute
 - 사용자 승인 없음
 - pre-execution doc_verify FAIL 또는 BLOCKED
 - executor BLOCKED 또는 실패
+- test_gate FAIL 또는 BLOCKED
 - post-execution doc_verify FAIL 또는 BLOCKED
 - closer precondition 미충족
 
@@ -473,12 +543,14 @@ status: completed
 - doc_writer
 - doc_verify
 - executor
+- test_gate
 - execute_writer
 - doc_verify
 - closer
 
 # Primary Output Paths
 - docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
+- docs/work-units/<domain>/<task>/index.md
 - docs/product-specs/<domain>/<task>/domain-boundary.md
 - docs/product-specs/<domain>/<task>/use-cases.md
 - docs/design-docs/<domain>/<task>/event-storming.md
@@ -490,6 +562,7 @@ status: completed
 
 # Verification Summary
 - pre-execution doc verify: PASS
+- test gate: PASS
 - post-execution doc verify: PASS
 - pr readiness: PR_READY
 

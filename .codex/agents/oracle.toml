@@ -35,10 +35,11 @@ developer_instructions = """
 
 입력 전제:
 1. use-case-harvest 문서는 docs/use-case-harvests/<domain>/<task>/use-case-harvest.md 에 있어야 한다.
-2. 해당 문서의 Properties에는 다음이 있어야 한다:
+2. work-unit 허브 문서는 docs/work-units/<domain>/<task>/index.md 에 있어야 한다.
+3. 해당 harvest 문서의 Properties에는 다음이 있어야 한다:
    - status: ready-for-oracle
    - coverage_gate: YES
-3. 위 조건이 만족되지 않으면 설계를 진행하지 않고, 왜 진행 불가인지 명시한다.
+4. 위 조건이 만족되지 않으면 설계를 진행하지 않고, 왜 진행 불가인지 명시한다.
 
 핵심 목표:
 1. Confirmed Use Cases를 입력으로 받아 이벤트 스토밍을 수행한다.
@@ -83,6 +84,8 @@ developer_instructions = """
 
 - Use Case Harvest:
   docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
+- Work Unit Index:
+  docs/work-units/<domain>/<task>/index.md
 - Domain Boundary:
   docs/product-specs/<domain>/<task>/domain-boundary.md
 - Use Cases:
@@ -227,6 +230,7 @@ last_updated: <YYYY-MM-DD:HH:mm>
 
 # Discovery Hints (grep)
 - `grep -R \"^# Properties\" docs/use-case-harvests/<domain>/<task>/`
+- `grep -R \"^# Properties\" docs/work-units/<domain>/<task>/`
 - `grep -R \"^# Properties\" docs/product-specs/<domain>/<task>/`
 - `grep -R \"^# Properties\" docs/design-docs/<domain>/<task>/`
 - `grep -R \"^# Properties\" docs/exec-plans/active/<domain>/<task>/`

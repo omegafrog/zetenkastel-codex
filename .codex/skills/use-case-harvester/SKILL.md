@@ -77,6 +77,8 @@ description: >
 - 기존 구조와 수동 메모를 가능한 한 보존한다
 - confirmed use case를 근거 없이 제거하지 않는다
 - 충돌은 삭제하지 말고 `Needs Review` 에 기록한다
+- work unit 허브 문서 `docs/work-units/<domain>/<task>/index.md`를 함께 생성/갱신한다
+- harvest 문서는 work unit 허브 문서로 backlink를 포함한다
 - 랜덤 id를 만들지 않는다
 - 모든 문서는 path 기반 deterministic id를 사용한다
 - coverage gate가 YES여도 사용자 승인 전에는 downstream을 시작하지 않는다
@@ -89,11 +91,16 @@ use-case-harvest 문서는 반드시 아래 경로에 있어야 한다.
 
 `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
 
+work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
+
+`docs/work-units/<domain>/<task>/index.md`
+
 규칙:
 
 - 기존 문서가 있으면 기존 경로를 유지한다
 - domain과 task는 프롬프트와 기존 문서 문맥 기준으로 유지한다
 - 경로를 임의 추측하지 않는다
+- index.md에는 harvest 문서 링크와 오케스트레이션 단계 상태를 기록한다
 
 ---
 
@@ -120,10 +127,11 @@ use-case-harvest 문서는 반드시 아래 경로에 있어야 한다.
 
 1. 사용자의 최신 프롬프트
 2. 기존 `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
-3. `AGENTS.md`
-4. `ARCHITECTURE.md`
-5. 관련 `docs/*`
-6. 현재 코드베이스
+3. 기존 `docs/work-units/<domain>/<task>/index.md`
+4. `AGENTS.md`
+5. `ARCHITECTURE.md`
+6. 관련 `docs/*`
+7. 현재 코드베이스
 
 ---
 
@@ -298,7 +306,37 @@ last_updated: <YYYY-MM-DD:HH:mm>
 - Confirmed Use Cases for Oracle
 - Assumptions Forbidden for Oracle
 - User Approval Required Before Orchestration: YES
+
+# Backlinks
+- docs/work-units/<domain>/<task>/index.md
 ````
+
+`index.md` 는 최소한 아래 구조를 따른다.
+
+```md
+# Properties
+doc_path: docs/work-units/<domain>/<task>/index.md
+owner: Codex
+status: active | completed
+domain: <domain>
+task: <task>
+last_updated: <YYYY-MM-DD:HH:mm>
+
+# Work Unit Summary
+- latest_stage
+- latest_status
+
+# Stage Documents
+- use_case_harvester: docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
+- oracle:
+- doc_writer:
+- doc_verify_before_execute:
+- executor:
+- test_gate:
+- execute_writer:
+- doc_verify_after_execute:
+- closer:
+```
 
 ---
 

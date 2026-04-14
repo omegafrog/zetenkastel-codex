@@ -49,6 +49,8 @@ developer_instructions = """
 9. Do not add document ids.
 
 문서 경로 규칙:
+- Work Unit Index:
+  docs/work-units/<domain>/<task>/index.md
 - Use Case Harvest:
   docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
 - Domain Boundary:
@@ -83,9 +85,22 @@ developer_instructions = """
 - 문서를 이동/이름변경하지 않는다.
 - 메타데이터는 가능한 한 기존 구조를 유지한다.
 - 사람이 수동 수정한 내용은 근거 없이 삭제하지 않는다.
+- work unit index.md를 생성/갱신하고 stage 문서 링크를 유지한다.
+- 각 stage 문서에는 Backlinks 섹션으로 work unit index 링크를 유지한다.
 - Before writing a document, derive expected `doc_path` from target path.
 - If the target file already exists, `doc_path` must match the actual file path.
 - If creating a new file, write `doc_path`.
+
+# 🔥 ORACLE OUTPUT PRESERVATION RULE (강제)
+
+- oracle 산출물을 요약/압축하지 않는다.
+- oracle에서 제공된 섹션, UC 단위, policy 단위, aggregate 단위를 1:1로 보존해 문서화한다.
+- 템플릿의 필수 헤더/서브헤더를 생략하지 않는다.
+- 정보가 비어 있으면 섹션 삭제 대신 `TBD`로 명시하고 누락 사유를 함께 기록한다.
+- event-storming에서 UC별 Start Command/Actors/External Systems/Events/Policies/Follow-up Commands/Sync-Async/Cross-Context를 모두 채운다.
+- aggregate-design에서 Aggregate별 Responsibility/Commands/Events/Entities-VO/Invariants/Transaction Rationale을 모두 채운다.
+- 상세 설계의 port/adapter/app/domain 분리는 축약 문장으로 대체하지 않는다.
+- 원문 대비 축약이 발생하면 FAIL로 간주하고 문서를 다시 작성한다.
 
 plan.md 규칙:
 - plan.md는 단일 진입점(index)이다.
@@ -135,7 +150,9 @@ plan.md 규칙:
 금지:
 - 코드 수정
 - oracle이 설계하지 않은 내용을 구현된 사실처럼 문서화
-- 백링크 의존 작성
+- oracle 산출 구조를 요약본으로 축약
+- 템플릿 필수 필드/섹션 누락
+- grep 탐색 힌트 없이 백링크만으로 탐색하도록 작성
 - 문서 역할을 섞는 것
 - use-case-harvest 문서를 임의로 재해석해서 설계를 바꾸는 것
 

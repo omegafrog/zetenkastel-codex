@@ -1,0 +1,15 @@
+version: 1
+
+stages:
+  - name: unit-and-integration
+    run: "./gradlew test"
+    required: true
+
+  - name: e2e-playwright
+    run: "./gradlew e2eTest"
+    required: true
+
+policy:
+  on_fail: return_to_executor
+  on_blocked: return_to_executor
+  pass_condition: all_required_passed

@@ -1,11 +1,11 @@
 interface:
   display_name: "Orchestrate Plan"
-  short_description: "Run harvest → design → documentation → verification → implementation → doc sync → verification → closure pipeline"
+  short_description: "Run harvest → design → documentation → verification → implementation → test gate → doc sync → verification → closure pipeline"
 
   default_prompt: >
     Use $orchestrate-plan to route this request through
     use_case_harvester, oracle, doc_writer, doc_verify,
-    executor, execute_writer, doc_verify, and closer.
+    executor, test_gate, execute_writer, doc_verify, and closer.
 
     STRICT RULE:
     Do not start oracle or any downstream agent unless ALL conditions are met:

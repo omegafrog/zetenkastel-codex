@@ -2,169 +2,309 @@
 doc_path: docs/use-case-harvests/zetenkastel/note-management-program/use-case-harvest.md
 owner: Codex
 status: ready-for-oracle
-title: 제텐카스텔 기반 노트 관리 프로그램
+title: 제텐카스텔 기반 웹 노트 프로그램
 domain: zetenkastel
 task: note-management-program
 coverage_gate: YES
 next_step: wait-for-user-approval
-last_updated: 2026-04-13:21:38
+last_updated: 2026-04-14:08:59
 
 # Prompt Interpretation
-- User Goal: 제텐카스텔 기반 노트 관리 프로그램을 만들고, 지정한 노트 타입 체계와 연결/탐색 기능을 포함한 데스크톱 MVP를 완성한다.
-- Requested Actions: 노트 타입 정의, 경로+파일명 기반 식별, 백링크 및 자동 연결/추천, 로컬 파일 저장소, 검색+태그+백링크+그래프 뷰, 1인용 데스크톱 범위, 핵심 MVP 기능(CRUD+백링크+그래프)을 유스케이스로 확정한다.
-- Constraints: 저장소는 로컬 파일만 사용한다. 사용자 범위는 1인용이며 인증을 두지 않는다. 백업은 이번 범위에서 제외한다.
-- Expected Outcome: 모든 노트 타입에 대한 CRUD, 백링크, 그래프 뷰를 포함하는 제텐카스텔 노트 관리 MVP 요구가 설계 입력 가능 수준으로 정리된다.
-- Explicit Non-goals: 다중 사용자 협업, 인증/인가, 클라우드 동기화, 백업 기능.
+- User Goal
+  - 제텐카스텔 방법론에 맞는 1인용 웹 노트 프로그램을 만들고, 핵심 노트 작업/연결/탐색을 완성하고 싶다.
+- Requested Actions
+  - 노트 타입을 `inbox`, `fleeting-notes`, `literature-notes`, `projects`, `area`, `archives`, `maps-of-content`, `references`, `templates`, `attachments` 로 지원한다.
+  - 모든 노트 타입에 대해 CRUD를 제공한다.
+  - 고유 식별 규칙을 `경로 + 파일명`으로 사용한다.
+  - 백링크를 제공한다.
+  - 링크 자동 연결 또는 연결 추천 기능(유사도 등 별도 알고리즘 기반)을 제공한다.
+  - 저장소는 로컬 파일만 사용한다.
+  - 검색은 태그 + 제목 + 내용 기준으로 지원한다.
+  - 그래프 뷰를 제공한다.
+  - 우선 플랫폼은 웹으로 한다.
+  - 현재 UI를 `shadcn/ui` 기반으로 정비한다.
+  - 노트 목록/탐색 화면에서 노트 종류별로 폴드(접기/펼치기) 정리한다.
+- Preferred Implementation Stack (language/framework/runtime)
+  - Backend: Java 21 + Spring Boot
+  - Frontend: React + Vite (사용자 확정)
+- Constraints
+  - 사용자 범위는 1인용이며 인증은 없다.
+  - 백업은 현재 범위에서 제외한다.
+  - 외부 클라우드/원격 저장소 요구는 없다.
+  - `shadcn/ui`는 React + Vite 프론트엔드에 적용한다.
+- Expected Outcome
+  - 웹에서 노트를 생성/수정/삭제/조회하고, 노트 간 연결 상태(백링크/추천/그래프)와 검색 결과를 사용할 수 있다.
+  - UI가 `shadcn/ui` 컴포넌트 기반으로 일관되게 제공되고, 노트 타입별 폴드 탐색이 가능하다.
+- Explicit Non-goals
+  - 인증/인가 기능
+  - 백업 기능
 
 # Candidate Use Cases
-- UC-CAND-001: 링크 자동 연결/추천 보조
-  - Primary Actor: 사용자
-  - Goal: 시스템이 유사도 기반으로 링크 자동 연결 또는 연결 추천을 제공해 연결 작업을 줄인다.
-  - Source Prompt Evidence: "링크를 유사도 판단 등의 별도 알고리즘으로 자동 연결 or 연결 추천 해주면 좋겠어."
-  - Status: candidate
+- UC-01 ~ UC-10을 candidate로 수집 후 confirmed 판정.
 
 # Confirmed Use Cases
-- UC-CONF-001: 노트 타입별 CRUD 수행
-  - Name: 모든 노트 타입 CRUD
-  - Primary Actor: 사용자
-  - Goal: 지정된 노트 타입(inbox/fleeting notes/literature notes/projects/area/archives/maps-of-content/references/templates/attachments)에 대해 생성/조회/수정/삭제를 수행한다.
-  - Preconditions: 데스크톱 앱이 실행 중이며 로컬 저장 경로가 접근 가능하다.
-  - Trigger: 사용자가 특정 노트 타입에서 노트 작업을 시작한다.
-  - Main Success Flow:
-    1. 사용자가 노트 타입을 선택한다.
-    2. 사용자가 노트를 생성/조회/수정/삭제한다.
-    3. 시스템이 로컬 파일에 변경사항을 반영한다.
-  - Alternative / Failure Flow:
-    1. 파일 쓰기 실패 시 시스템은 실패 원인을 표시하고 재시도/취소를 제공한다.
-    2. 대상 파일 누락/손상 시 시스템은 오류를 표시하고 복구 가능한 동작(새 파일 생성 또는 참조 갱신)을 안내한다.
-  - Success Outcome: 모든 지정 노트 타입에서 CRUD가 일관되게 동작한다.
-  - Source Prompt Evidence: "모든 노트 타입 노트 CRUD"
-  - Status: confirmed
+## UC-01: 노트 생성
+- Primary Actor: 단일 사용자
+- Goal: 지정된 노트 타입 하위에 노트를 생성한다.
+- Preconditions
+  - 웹 애플리케이션이 실행 중이다.
+  - 노트 타입 루트 경로가 준비되어 있다.
+- Trigger
+  - 사용자가 "새 노트"를 선택하고 노트 타입/파일명/내용(및 태그)을 입력한다.
+- Main Success Flow
+  1. 사용자가 노트 타입을 선택한다.
+  2. 사용자가 파일명과 본문/메타데이터를 입력한다.
+  3. 시스템이 `타입 경로 + 파일명`으로 고유 식별자를 생성/검증한다.
+  4. 시스템이 로컬 파일 저장소에 노트를 저장한다.
+  5. 시스템이 노트 상세 화면을 갱신한다.
+- Alternative / Failure Flow
+  - 동일 경로+파일명 충돌 시 저장을 거부하고 파일명 변경을 요구한다.
+  - 허용되지 않은 노트 타입이면 저장을 거부한다.
+  - 로컬 파일 쓰기 실패 시 오류를 표시한다.
+- Success Outcome
+  - 새 노트가 로컬 파일에 저장되고 조회 가능하다.
+- Source Prompt Evidence
+  - "모든 노트 타입 노트 CRUD", "고유 식별 규칙은 경로 + 파일명", "저장소는 로컬 파일"
+- Status: confirmed
 
-- UC-CONF-002: 경로+파일명 기반 식별 및 조회
-  - Name: 파일 경로 기반 노트 식별
-  - Primary Actor: 사용자
-  - Goal: 노트를 경로 + 파일명으로 고유하게 식별하고 관리한다.
-  - Preconditions: 노트가 로컬 파일 구조 내에 존재한다.
-  - Trigger: 사용자가 노트를 생성/열기/이동/이름변경한다.
-  - Main Success Flow:
-    1. 시스템이 노트의 상대 경로와 파일명을 식별키로 사용한다.
-    2. 사용자가 해당 식별키 기준으로 노트를 재조회한다.
-  - Alternative / Failure Flow:
-    1. 경로 충돌 시 시스템은 충돌을 표시하고 이름 변경 또는 위치 변경을 유도한다.
-    2. 이동/이름변경 후 참조 불일치가 발생하면 시스템이 링크 갱신 또는 무효 링크 표시를 수행한다.
-  - Success Outcome: 노트 식별과 접근이 경로+파일명 기준으로 안정적으로 유지된다.
-  - Source Prompt Evidence: "고유 식별 규칙은 경로 + 파일명으로 해"
-  - Status: confirmed
+## UC-02: 노트 조회/열람
+- Primary Actor: 단일 사용자
+- Goal: 노트를 열람한다.
+- Preconditions
+  - 최소 1개 이상의 노트가 존재한다.
+- Trigger
+  - 사용자가 목록/검색/링크를 통해 특정 노트를 선택한다.
+- Main Success Flow
+  1. 시스템이 해당 노트를 로컬 파일에서 읽는다.
+  2. 시스템이 제목/태그/본문/링크 정보를 렌더링한다.
+- Alternative / Failure Flow
+  - 파일이 삭제/손상된 경우 오류를 표시하고 목록으로 복귀시킨다.
+- Success Outcome
+  - 사용자가 노트 내용을 확인한다.
+- Source Prompt Evidence
+  - "모든 노트 타입 노트 CRUD", "플랫폼은 웹"
+- Status: confirmed
 
-- UC-CONF-003: 백링크 생성/조회
-  - Name: 백링크 중심 연결 탐색
-  - Primary Actor: 사용자
-  - Goal: 노트 간 링크를 생성하고 백링크로 역참조를 확인한다.
-  - Preconditions: 최소 2개 이상의 노트가 존재한다.
-  - Trigger: 사용자가 노트 간 링크를 생성하거나 노트를 열람한다.
-  - Main Success Flow:
-    1. 사용자가 노트 A에서 노트 B로 링크를 추가한다.
-    2. 시스템이 노트 B의 백링크 목록에 노트 A를 반영한다.
-    3. 사용자가 백링크를 통해 관련 노트로 이동한다.
-  - Alternative / Failure Flow:
-    1. 링크 대상이 존재하지 않으면 시스템이 깨진 링크로 표시한다.
-    2. 노트 삭제/이동으로 백링크 무결성이 깨지면 시스템이 백링크를 갱신하거나 무효 상태를 표시한다.
-  - Success Outcome: 사용자는 백링크를 통해 연결 맥락을 탐색할 수 있다.
-  - Source Prompt Evidence: "링크 정책은 백링크를 사용"
-  - Status: confirmed
+## UC-03: 노트 수정
+- Primary Actor: 단일 사용자
+- Goal: 기존 노트 내용을 수정한다.
+- Preconditions
+  - 대상 노트가 존재한다.
+- Trigger
+  - 사용자가 노트 편집 후 저장한다.
+- Main Success Flow
+  1. 시스템이 편집 내용을 검증한다.
+  2. 시스템이 동일 식별자(경로+파일명) 기준으로 파일을 갱신한다.
+  3. 시스템이 링크/백링크 인덱스를 재계산 또는 갱신한다.
+- Alternative / Failure Flow
+  - 저장 중 파일 쓰기 실패 시 수정 전 상태를 유지하고 오류를 표시한다.
+- Success Outcome
+  - 노트가 최신 내용으로 반영된다.
+- Source Prompt Evidence
+  - "모든 노트 타입 노트 CRUD", "백링크"
+- Status: confirmed
 
-- UC-CONF-004: 검색/태그/백링크/그래프 기반 탐색
-  - Name: 고급 탐색과 그래프 뷰
-  - Primary Actor: 사용자
-  - Goal: 제목/본문 검색, 태그 필터, 백링크 조회, 그래프 뷰를 통해 지식을 탐색한다.
-  - Preconditions: 노트와 링크 데이터가 축적되어 있다.
-  - Trigger: 사용자가 노트를 찾거나 관계를 시각적으로 확인하려고 한다.
-  - Main Success Flow:
-    1. 사용자가 검색어(제목/본문) 또는 태그 필터를 입력한다.
-    2. 시스템이 일치 노트를 반환한다.
-    3. 사용자가 백링크와 그래프 뷰에서 관계를 확인하고 노트로 이동한다.
-  - Alternative / Failure Flow:
-    1. 검색 결과가 없으면 시스템은 빈 결과와 검색 조건 조정 안내를 제공한다.
-    2. 그래프 렌더링 실패 시 시스템은 리스트 기반 대체 탐색(검색/백링크)으로 폴백한다.
-  - Success Outcome: 사용자는 다차원 탐색으로 관련 노트를 빠르게 찾고 연결 구조를 파악한다.
-  - Source Prompt Evidence: "검색 기능은 D", "백링크 + 그래프 뷰"
-  - Status: confirmed
+## UC-04: 노트 삭제
+- Primary Actor: 단일 사용자
+- Goal: 노트를 삭제한다.
+- Preconditions
+  - 대상 노트가 존재한다.
+- Trigger
+  - 사용자가 삭제를 확정한다.
+- Main Success Flow
+  1. 시스템이 대상 파일을 삭제한다.
+  2. 시스템이 백링크/그래프 인덱스를 정리한다.
+  3. 시스템이 목록/그래프에서 해당 노드를 제거한다.
+- Alternative / Failure Flow
+  - 파일 삭제 실패 시 삭제를 취소하고 오류를 표시한다.
+- Success Outcome
+  - 노트가 저장소와 화면에서 제거된다.
+- Source Prompt Evidence
+  - "모든 노트 타입 노트 CRUD", "백링크", "그래프 뷰"
+- Status: confirmed
 
-- UC-CONF-005: 1인용 데스크톱 로컬 운영
-  - Name: 싱글 유저 데스크톱 운영
-  - Primary Actor: 사용자
-  - Goal: 인증 없이 단일 사용자가 데스크톱 환경에서 로컬 파일 기반으로 앱을 사용한다.
-  - Preconditions: 사용자 로컬 머신에서 앱 실행 가능하다.
-  - Trigger: 앱 실행 및 노트 관리 시작.
-  - Main Success Flow:
-    1. 사용자가 인증 절차 없이 앱을 연다.
-    2. 앱이 로컬 저장소를 로드한다.
-    3. 사용자가 모든 기능을 단일 사용자 컨텍스트에서 수행한다.
-  - Alternative / Failure Flow:
-    1. 로컬 경로 접근 권한이 없으면 시스템이 경로 재설정/권한 확인을 안내한다.
-  - Success Outcome: 인증 없는 1인용 데스크톱 사용 흐름이 안정적으로 동작한다.
-  - Source Prompt Evidence: "사용자 범위는 1인용. 인증 없음", "우선 플랫폼은 데스크톱", "저장소는 로컬 파일으로만"
-  - Status: confirmed
+## UC-05: 백링크 확인
+- Primary Actor: 단일 사용자
+- Goal: 특정 노트를 참조하는 다른 노트들을 확인한다.
+- Preconditions
+  - 링크 인덱스가 생성되어 있다.
+- Trigger
+  - 사용자가 노트 상세에서 백링크 섹션을 연다.
+- Main Success Flow
+  1. 시스템이 현재 노트를 대상으로 역참조 목록을 계산/조회한다.
+  2. 시스템이 백링크 목록과 개수를 표시한다.
+- Alternative / Failure Flow
+  - 인덱스가 손상/누락되면 재색인을 수행하고 결과를 재표시한다.
+- Success Outcome
+  - 사용자가 연결된 문맥 노트를 탐색한다.
+- Source Prompt Evidence
+  - "링크 정책은 백링크를 사용"
+- Status: confirmed
+
+## UC-06: 링크 자동 연결 또는 추천
+- Primary Actor: 단일 사용자
+- Goal: 관련 노트 링크를 자동 연결 또는 추천받는다.
+- Preconditions
+  - 추천 계산에 필요한 노트 데이터가 존재한다.
+- Trigger
+  - 사용자가 노트 저장/열람 시 추천 요청을 수행하거나 자동 추천이 실행된다.
+- Main Success Flow
+  1. 시스템이 태그/제목/본문 기반 유사도를 계산한다.
+  2. 시스템이 후보 링크를 산출한다.
+  3. 시스템이 자동 연결 또는 추천 리스트를 제공한다.
+- Alternative / Failure Flow
+  - 유사도 계산 결과가 없으면 빈 추천 결과를 제공한다.
+  - 계산 실패 시 기존 수동 링크만 유지한다.
+- Success Outcome
+  - 사용자가 관련 노트를 더 빠르게 연결한다.
+- Source Prompt Evidence
+  - "유사도 판단 등의 별도 알고리즘으로 자동 연결 or 연결 추천"
+- Status: confirmed
+
+## UC-07: 검색(태그/제목/내용)
+- Primary Actor: 단일 사용자
+- Goal: 노트를 조건으로 검색한다.
+- Preconditions
+  - 검색 가능한 노트 데이터가 존재한다.
+- Trigger
+  - 사용자가 검색어 또는 태그 필터를 입력한다.
+- Main Success Flow
+  1. 시스템이 태그/제목/내용 필드에서 검색한다.
+  2. 시스템이 정렬된 결과 목록을 제공한다.
+  3. 사용자가 결과를 선택해 노트를 연다.
+- Alternative / Failure Flow
+  - 결과가 없으면 빈 결과 상태를 표시한다.
+- Success Outcome
+  - 사용자가 원하는 노트를 빠르게 찾는다.
+- Source Prompt Evidence
+  - "검색 기능은 태그 + 제목 + 내용 검색"
+- Status: confirmed
+
+## UC-08: 그래프 뷰 탐색
+- Primary Actor: 단일 사용자
+- Goal: 노트 간 연결 구조를 그래프로 본다.
+- Preconditions
+  - 노트와 링크 데이터가 존재한다.
+- Trigger
+  - 사용자가 그래프 뷰를 연다.
+- Main Success Flow
+  1. 시스템이 노트를 노드, 링크를 엣지로 구성한다.
+  2. 시스템이 그래프를 렌더링한다.
+  3. 사용자가 노드를 선택해 해당 노트로 이동한다.
+- Alternative / Failure Flow
+  - 노트 수가 많아 렌더링 성능이 저하되면 축약/필터 상태로 로드한다.
+- Success Outcome
+  - 사용자가 지식 구조를 시각적으로 탐색한다.
+- Source Prompt Evidence
+  - "그래프 뷰까지 해줘"
+- Status: confirmed
+
+## UC-09: shadcn/ui 기반 UI 전환
+- Primary Actor: 단일 사용자
+- Goal: 기존 웹 화면을 `shadcn/ui` 컴포넌트 기반으로 일관성 있게 사용한다.
+- Preconditions
+  - React + Vite 프론트엔드 빌드 환경이 준비되어 있다.
+- Trigger
+  - 사용자가 노트 목록/상세/편집/검색/그래프 화면을 연다.
+- Main Success Flow
+  1. 시스템이 `shadcn/ui` 컴포넌트 체계를 사용해 화면을 렌더링한다.
+  2. 시스템이 화면 간 공통 UI 패턴(버튼, 입력, 카드, 패널)을 일관되게 제공한다.
+  3. 사용자가 기존 기능(CRUD/검색/링크/그래프)을 동일하게 수행한다.
+- Alternative / Failure Flow
+  - `shadcn/ui` 컴포넌트 적용 중 일부 화면 누락 시 해당 화면은 기존 UI로 fallback되고 보완 대상에 기록한다.
+- Success Outcome
+  - 사용자 관점에서 일관된 컴포넌트 기반 UI를 사용한다.
+- Source Prompt Evidence
+  - "현재 ui를 shadcn을 사용하도록 수정"
+- Status: confirmed
+
+## UC-10: 노트 타입별 폴드 탐색
+- Primary Actor: 단일 사용자
+- Goal: 노트 목록을 타입별 접기/펼치기로 정리해 탐색 효율을 높인다.
+- Preconditions
+  - 노트가 하나 이상 존재하며 타입 정보가 식별 가능하다.
+- Trigger
+  - 사용자가 노트 목록/사이드바에서 타입 섹션을 펼치거나 접는다.
+- Main Success Flow
+  1. 시스템이 노트를 타입별 섹션으로 그룹화해 표시한다.
+  2. 사용자가 특정 타입 섹션을 접거나 펼친다.
+  3. 시스템이 폴드 상태를 반영한 목록을 즉시 렌더링한다.
+- Alternative / Failure Flow
+  - 특정 타입에 노트가 없으면 빈 상태로 표시한다.
+  - 폴드 상태 저장 실패 시 기본 펼침 상태로 렌더링한다.
+- Success Outcome
+  - 사용자가 원하는 노트 타입 섹션에 빠르게 접근한다.
+- Source Prompt Evidence
+  - "노트 종류에 따라 폴드되어 정리되게"
+- Status: confirmed
 
 # Coverage Mapping
-- Prompt Requirement -> Mapped Use Case IDs
-- "노트 타입은 inbox / fleeting notes/ literature notes/projects/area/archives/maps-of-content/references/templates/attachments" -> UC-CONF-001
-- "고유 식별 규칙은 경로 + 파일명" -> UC-CONF-002
-- "링크 정책은 백링크" -> UC-CONF-003
-- "링크 자동 연결 or 연결 추천" -> UC-CAND-001
-- "저장소는 로컬 파일" -> UC-CONF-001, UC-CONF-005
-- "검색 기능은 D(검색+태그+백링크+그래프)" -> UC-CONF-004
-- "사용자 범위 1인용, 인증 없음" -> UC-CONF-005
-- "우선 플랫폼 데스크톱" -> UC-CONF-005
-- "백업 불필요" -> UC-CONF-005 (범위 제외 정책)
-- "MVP: 모든 노트 타입 CRUD + 백링크 + 그래프 뷰" -> UC-CONF-001, UC-CONF-003, UC-CONF-004
+- "제텐카스텔 기반 노트 프로그램" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08
+- "노트 타입 inbox/fleeting notes/literature notes/projects/area/archives/maps-of-content/references/templates/attachments" -> UC-01, UC-02, UC-03, UC-04
+- "고유 식별 규칙은 경로 + 파일명" -> UC-01, UC-03
+- "링크 정책은 백링크" -> UC-05
+- "유사도 기반 자동 연결 or 연결 추천" -> UC-06
+- "저장소는 로컬 파일" -> UC-01, UC-02, UC-03, UC-04
+- "검색 기능은 태그 + 제목 + 내용" -> UC-07
+- "사용자 범위 1인용, 인증 없음" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08
+- "플랫폼은 웹" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-06, UC-07, UC-08
+- "백업 불필요" -> 명시적 제외 범위(Non-goal)
+- "모든 노트 타입 CRUD + 백링크 + 그래프 뷰" -> UC-01, UC-02, UC-03, UC-04, UC-05, UC-08
+- "현재 UI를 shadcn 사용으로 수정" -> UC-09
+- "노트 종류에 따라 폴드되어 정리" -> UC-10
 - Coverage Gaps
-- 자동 연결/추천의 정확한 정책(완전 자동 vs 추천 우선), 허용 오탐률, 승인 UX는 미정이지만 "있으면 좋겠어" 수준의 선택 기능으로 해석하여 MVP 블로커로 보지 않는다.
+  - 없음 (기존 기능 요구 + UI 전환/폴드 탐색 요구 모두 confirmed use case로 매핑됨)
 
 # Coverage Gate
 - Ready for Event Storming: YES
 - Why
-- 사용자 목표와 MVP 범위가 confirmed use case로 모두 반영되었다.
-- 주요 실패/예외 흐름(파일 I/O 실패, 경로 충돌, 깨진 링크, 그래프 렌더 실패)을 정의했다.
-- 외부 시스템 의존은 없고(로컬 파일만 사용), 시스템 경계가 명확하다.
-- 구현 범위(CRUD/백링크/그래프)와 제외 범위(인증/협업/백업/클라우드)를 구분했다.
+  - 핵심 사용자 목표와 기능 범위가 confirmed use case로 커버되었다.
+  - 실패/예외 흐름, 외부 시스템(로컬 파일 시스템), 범위/제외 범위 구분이 반영되었다.
+  - 기본 구현 스택(`Java + Spring Boot`, `React + Vite`)이 사용자 승인으로 확정되었다.
+  - 링크 정책은 \"자동 연결 또는 연결 추천\" 요구를 충족하는 범위로 설계 가능하다.
+  - UI 전환(`shadcn/ui`)과 타입별 폴드 탐색 요구가 별도 confirmed use case로 반영되었다.
 - Blocking Conditions
-- 없음
+  - 없음
 
 # Blocking Unknowns
-- 없음(현 단계 이벤트 스토밍 착수에 필요한 최소 정보 충족)
-
-# Needs Review
-- UC-CAND-001(자동 연결/추천)을 MVP 필수로 승격할지 여부는 추후 우선순위 결정 필요.
-
-# Rejected Use Cases
-- UC-REJ-001: 다중 사용자 협업 편집
-  - Reason: 사용자 범위가 1인용으로 확정됨.
-- UC-REJ-002: 인증/인가 흐름
-  - Reason: 인증 없음으로 명시됨.
-- UC-REJ-003: 클라우드 동기화 및 백업
-  - Reason: 로컬 파일만 사용, 백업 불필요로 명시됨.
-
-# Missing-but-Plausible Use Cases
 - 없음
 
+# Needs Review
+- 기존 work-unit은 `completed` 상태였으나, 사용자의 신규/확장 요청으로 동일 identity에서 재활성화가 필요함.
+- 기존 정적 페이지(`src/main/resources/static/*.html`)와 신규 React + Vite UI의 공존/전환 전략은 구현 단계에서 결정 필요.
+
+# Rejected Use Cases
+- 다중 사용자 협업/권한 관리 (프롬프트에 없음)
+- 계정 인증/인가 (명시적 제외)
+- 백업/동기화 파이프라인 (명시적 제외)
+
+# Missing-but-Plausible Use Cases
+- 대량 노트에서 그래프 필터링/클러스터링 고도화
+- 링크 추천 결과에 대한 사용자 피드백(수락/거절) 학습
+- 폴드 상태의 세션 간 유지(local storage 등)
+
 # Next Revision Focus
-- 자동 연결/추천 기능을 MVP 포함 여부에 따라 confirmed로 승격하거나 후속 릴리스 항목으로 분리.
-- 그래프 뷰 성능 한계(노트 수 증가 시) 기준을 정의.
+- 사용자 승인 후 오케스트레이션(`oracle`) 진행 여부를 결정한다.
 
 # Oracle Handoff
 - Allowed To Proceed: YES
 - Confirmed Use Cases for Oracle
-- UC-CONF-001
-- UC-CONF-002
-- UC-CONF-003
-- UC-CONF-004
-- UC-CONF-005
+  - UC-01: 노트 생성
+  - UC-02: 노트 조회/열람
+  - UC-03: 노트 수정
+  - UC-04: 노트 삭제
+  - UC-05: 백링크 확인
+  - UC-06: 링크 자동 연결 또는 추천
+  - UC-07: 검색(태그/제목/내용)
+  - UC-08: 그래프 뷰 탐색
+  - UC-09: shadcn/ui 기반 UI 전환
+  - UC-10: 노트 타입별 폴드 탐색
 - Assumptions Forbidden for Oracle
-- 노트 타입 목록을 임의 변경/축소하지 않는다.
-- 식별 규칙(경로+파일명)을 UUID 등으로 치환하지 않는다.
-- 저장소를 DB/클라우드로 변경 가정하지 않는다.
-- 인증/다중사용자/백업 기능을 기본 범위에 추가하지 않는다.
-- 자동 연결/추천을 필수 기능으로 단정하지 않는다(현재 candidate).
+  - 저장소를 로컬 파일 외 다른 저장소로 확장하지 않는다.
+  - 인증/백업 기능을 범위에 임의 추가하지 않는다.
+  - Frontend 스택을 React + Vite 이외로 임의 변경하지 않는다.
+  - 타입별 폴드 요구를 단순 정렬/필터로 대체하지 않는다.
 - User Approval Required Before Orchestration: YES
+
+# Backlinks
+- docs/work-units/zetenkastel/note-management-program/index.md

@@ -22,3 +22,25 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Gradle
+.gradle/
+build/
+out/
+
+# Application data
+data/notes/
+
+# IDE / local workspace artifacts
+.classpath
+.project
+.settings/
+bin/
+
+# Playwright e2e artifacts
+e2e/node_modules/
+e2e/playwright-report/
+e2e/test-results/
+
+# Frontend artifacts
+frontend/node_modules/
