@@ -4,12 +4,12 @@ owner: Codex
 status: draft
 domain: zetenkastel
 task: note-management-program
-last_updated: 2026-04-14:09:13
+last_updated: 2026-04-14:10:12
 
 # Aggregate Design
 ## Aggregate: NoteAggregate
 - Responsibility
-  - 노트 상태(제목/태그/내용/링크)와 경로 기반 식별자를 일관성 있게 유지한다.
+  - 노트 생성/수정/삭제와 경로 기반 식별자 일관성 유지
 - Commands Handled
   - CreateNote, UpdateNote, DeleteNote
 - Events Produced
@@ -17,36 +17,36 @@ last_updated: 2026-04-14:09:13
 - Included Entities / Value Objects
   - Note, NoteId, NoteType, LinkMode
 - Invariants
-  - NoteId(`type/fileName`)는 고유해야 한다.
-  - update/delete 대상 노트는 반드시 존재해야 한다.
-  - 삭제된 노트를 가리키는 링크는 정리 대상이다.
+  - `type/fileName` path key는 고유
+  - update는 대상 path key가 존재할 때만 허용
+  - 삭제 후 dangling link는 정리
 - Transaction Boundary Rationale
-  - 단일 노트 변경과 해당 링크 정리는 하나의 일관성 경계에서 처리한다.
+  - 단일 note write와 링크 정리를 하나의 경계에서 처리
 
-## Aggregate: NoteDiscoveryProjection
+## Aggregate: EditorSessionProjection (UI-side)
 - Responsibility
-  - 검색/백링크/그래프/추천 계산에 필요한 조회 모델을 제공한다.
+  - 제목/타입/태그/링크/내용 입력 상태와 derived fileName 계산
 - Commands Handled
-  - SearchNotes, LoadBacklinks, LoadGraph, RecommendLinks
+  - DeriveFileNameFromTypeAndTitle, CaptureTagInput, SaveNoteIntent, RenderActionIcons
 - Events Produced
-  - NotesSearched, BacklinksLoaded, GraphBuilt, RecommendationsCalculated
+  - FileNameAutoDerived, TagChipCommitted, SaveBranchDecided, ActionIconsRendered
 - Included Entities / Value Objects
-  - GraphView, GraphNode, GraphEdge, ScoredNote
+  - FormState, TagChip, DerivedPathKey
 - Invariants
-  - 그래프 간선은 존재하는 노트 ID만 대상으로 한다.
-  - 추천 결과는 자기 자신과 기존 링크를 제외한다.
-  - 검색은 태그/제목/내용 기준을 모두 고려한다.
+  - 태그는 공백/중복 없이 유지
+  - fileName은 title 기반 slug 규칙 유지
+  - 단일 저장에서 create/update 분기 결과는 명확해야 함
 - Transaction Boundary Rationale
-  - 조회 연산은 읽기 전용으로 수행하고 쓰기 트랜잭션과 분리한다.
+  - UI state policy를 서버 저장 정책과 분리하되 path key는 동일 규칙으로 맞춤
 
 # Policy Placement
-- Aggregate 내부 규칙
-  - 중복 ID 차단, 업데이트 대상 존재 검증, 삭제 링크 정리
+- Aggregate 내부
+  - 중복 ID 차단, update 존재 검증, 삭제 링크 정리
 - Application orchestration
-  - `AUTO_CONNECT` 모드에서 추천 결과 병합
-- Query policy
-  - 검색/그래프/백링크/추천 필터링 규칙
+  - 추천 모드 병합, save 분기 호출(create vs update)
+- UI policy
+  - property compact layout, icon+tooltip, 3패널 폭 정책, Enter 태그 확정
 
 # Backlinks
 - docs/design-docs/zetenkastel/note-management-program/event-storming.md
-- docs/work-units/zetenkastel/note-management-program/index.md
+- docs/work-units/zetenkastel/note-management-program-20260414-0959/index.md
