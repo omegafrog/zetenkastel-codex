@@ -6,6 +6,7 @@ export interface Note {
   tags: string[];
   content: string;
   links: string[];
+  metadata: Record<string, string>;
 }
 
 export interface Recommendation {
@@ -36,4 +37,5 @@ export interface UpsertNotePayload {
   tags: string[];
   content: string;
   links: string[];
+  metadata: Record<string, string>;
 }

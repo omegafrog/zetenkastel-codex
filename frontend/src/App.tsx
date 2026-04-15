@@ -27,6 +27,7 @@ interface FormState {
   tagInput: string;
   links: string;
   content: string;
+  metadata: Record<string, string>;
 }
 
 const emptyForm: FormState = {
@@ -35,7 +36,8 @@ const emptyForm: FormState = {
   tags: [],
   tagInput: "",
   links: "",
-  content: ""
+  content: "",
+  metadata: {}
 };
 
 function slugifyTitle(title: string) {
@@ -56,7 +58,8 @@ function toFormState(note: Note): FormState {
     tags: [...note.tags],
     tagInput: "",
     links: note.links.join(","),
-    content: note.content
+    content: note.content,
+    metadata: { ...note.metadata }
   };
 }
 
@@ -211,20 +214,21 @@ export default function App() {
       title: form.title.trim(),
       tags: form.tags,
       links: parseCsv(form.links),
-      content: form.content
+      content: form.content,
+      metadata: { ...form.metadata }
     };
 
     try {
       const targetExists = notes.some((note) => note.id === currentPathKey);
-      if (targetExists) {
-        await updateNote(payload);
-        setMessage("노트 수정 완료");
-      } else {
-        await createNote(payload);
-        setMessage("노트 생성 완료");
-      }
+      const saved = targetExists ? await updateNote(payload) : await createNote(payload);
       await loadNotes();
-      await loadSelectedNoteDetails(currentPathKey);
+      await loadSelectedNoteDetails(saved.id);
+      const classificationMessage = saved.type !== form.type ? ` · ${saved.type}로 분류됨` : "";
+      if (targetExists) {
+        setMessage(`노트 수정 완료${classificationMessage}`);
+      } else {
+        setMessage(`노트 생성 완료${classificationMessage}`);
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "저장 실패");
     }
@@ -289,12 +293,12 @@ export default function App() {
         {activeTab === "graph" ? (
           <GraphView />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)_280px]">
+          <div className="grid gap-4 lg:grid-cols-[224px_minmax(0,1fr)_280px]">
             <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-base">탐색</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="grid gap-2">
                   <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="제목/내용/태그 검색" />
                   <Input value={tag} onChange={(event) => setTag(event.target.value)} placeholder="태그 exact" />
@@ -303,23 +307,23 @@ export default function App() {
                   </Button>
                 </div>
 
-                <div id="noteList" className="space-y-2 rounded-lg border border-border bg-muted/30 p-2">
+                <div id="noteList" className="space-y-1">
                   {types.map((type) => (
                     <Collapsible key={type} open={foldState[type]} onOpenChange={() => toggleFold(type)}>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-between px-2">
+                        <Button variant="ghost" className="h-8 w-full justify-between px-1.5">
                           <span className="text-xs font-semibold">{type}</span>
                           {foldState[type] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </Button>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-1 px-2 pb-2">
+                      <CollapsibleContent className="space-y-1 pb-1 pl-1 pr-0">
                         {(groupedNotes[type] ?? []).length === 0 ? (
-                          <p className="rounded-md bg-white p-2 text-xs text-muted-foreground">노트 없음</p>
+                          <p className="rounded-md bg-white px-2 py-1.5 text-xs text-muted-foreground">노트 없음</p>
                         ) : (
                           groupedNotes[type].map((note) => (
                             <button
                               key={note.id}
-                              className="w-full rounded-md border border-border bg-white p-2 text-left hover:border-primary"
+                              className="w-full rounded-md border border-border bg-white px-2 py-1.5 text-left hover:border-primary"
                               onClick={() => void selectNote(note)}
                             >
                               <p className="text-sm font-medium">{note.title || note.fileName}</p>
@@ -335,11 +339,7 @@ export default function App() {
             </Card>
 
             <Card className="border-0 bg-white/90 shadow-xl backdrop-blur">
-              <CardHeader>
-                <CardTitle>노트 편집</CardTitle>
-                <CardDescription>제목 우선 + compact property</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-5">
                 <div className="space-y-1">
                   <label className="text-sm font-medium">제목</label>
                   <Input id="title" value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} placeholder="노트 제목" />

@@ -18,6 +18,7 @@ test.beforeEach(async ({ request }) => {
 test('saves notes with single save action, builds backlinks, and renders graph view', async ({ page }) => {
   await page.goto('/index.html');
   await expect(page.locator('#type option')).not.toHaveCount(0);
+  await expect(page.getByText('노트 편집')).toHaveCount(0);
 
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   const aTitle = `playwright-a-${suffix}`;
@@ -53,4 +54,20 @@ test('saves notes with single save action, builds backlinks, and renders graph v
   await page.goto('/graph.html');
   await expect(page.locator('svg#graph')).toBeVisible();
   await expect(page.locator('svg#graph')).toContainText(aTitle);
+});
+
+test('classifies inbox notes with source evidence into literature notes', async ({ page }) => {
+  await page.goto('/index.html');
+
+  const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const title = `source-note-${suffix}`;
+  const expectedPath = `literature-notes/${title}`;
+
+  await page.locator('#type').selectOption('inbox');
+  await page.locator('#title').fill(title);
+  await page.locator('#links').fill('');
+  await page.locator('#content').fill(`저자: Martin Fowler\n출처: Refactoring\nURL: https://martinfowler.com/articles/${suffix}\n리팩토링 요약`);
+
+  await page.getByRole('button', { name: '저장(생성)' }).click();
+  await expect(page.locator('#noteList')).toContainText(expectedPath);
 });

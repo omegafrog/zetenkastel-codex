@@ -11,8 +11,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -124,17 +126,29 @@ public class LocalFileNoteRepository implements NoteRepository {
     }
 
     private String serialize(Note note) {
+        List<String> lines = new ArrayList<>();
+        lines.add("---");
+        lines.add("title: " + note.title());
+        lines.add("type: " + note.id().type().directory());
+        lines.add("fileName: " + note.id().fileName());
         String tags = String.join(",", note.tags());
         String links = String.join(",", note.links());
-        return "title: " + note.title() + "\n"
-                + "tags: " + tags + "\n"
-                + "links: " + links + "\n"
-                + "---\n"
-                + note.content();
+        lines.add("tags: " + tags);
+        lines.add("links: " + links);
+        note.metadata().forEach((key, value) -> lines.add(key + ": " + (value == null ? "" : value)));
+        lines.add("---");
+        lines.add(note.content());
+        return String.join("\n", lines);
     }
 
     private Note deserialize(NoteId id, String raw) {
         List<String> lines = raw.lines().collect(Collectors.toList());
+        if (!lines.isEmpty() && lines.getFirst().equals("---")) {
+            int secondDivider = findFrontmatterDivider(lines);
+            if (secondDivider > 0) {
+                return deserializeFrontmatter(id, lines, secondDivider);
+            }
+        }
         int divider = lines.indexOf("---");
 
         if (divider < 0) {
@@ -148,6 +162,41 @@ public class LocalFileNoteRepository implements NoteRepository {
         String content = String.join("\n", lines.subList(divider + 1, lines.size()));
 
         return new Note(id, title, tags, content, links);
+    }
+
+    private Note deserializeFrontmatter(NoteId id, List<String> lines, int divider) {
+        Map<String, String> frontmatter = new LinkedHashMap<>();
+        for (int i = 1; i < divider; i++) {
+            String line = lines.get(i);
+            int colonIndex = line.indexOf(':');
+            if (colonIndex < 0) {
+                continue;
+            }
+            String key = line.substring(0, colonIndex).strip();
+            String value = line.substring(colonIndex + 1).strip();
+            frontmatter.put(key, value);
+        }
+
+        String title = frontmatter.getOrDefault("title", id.fileName());
+        Set<String> tags = splitCommaValues(frontmatter.getOrDefault("tags", ""));
+        Set<String> links = splitCommaValues(frontmatter.getOrDefault("links", ""));
+        frontmatter.remove("title");
+        frontmatter.remove("type");
+        frontmatter.remove("fileName");
+        frontmatter.remove("tags");
+        frontmatter.remove("links");
+
+        String content = String.join("\n", lines.subList(divider + 1, lines.size()));
+        return new Note(id, title, tags, content, links, frontmatter);
+    }
+
+    private int findFrontmatterDivider(List<String> lines) {
+        for (int i = 1; i < lines.size(); i++) {
+            if (lines.get(i).equals("---")) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private String extractHeader(List<String> lines, String key, int divider, String defaultValue) {
