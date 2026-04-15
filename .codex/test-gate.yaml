@@ -2,11 +2,19 @@ version: 1
 
 stages:
   - name: unit-and-integration
+<<<<<<< HEAD
     run: "./gradlew test"
     required: true
 
   - name: e2e-playwright
     run: "./gradlew e2eTest"
+=======
+    command_ref: testing.commands.unit_integration
+    required: true
+
+  - name: e2e
+    command_ref: testing.commands.e2e
+>>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
     required: true
 
 policy:

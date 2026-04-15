@@ -66,6 +66,9 @@ description: >
 - 코드 수정하기
 - 프롬프트에 없는 기능을 임의 확정하기
 - 기존 run의 harvest 문서를 덮어쓰기
+- 랜덤 id를 만들지 않는다
+- 문서 id 필드를 사용하지 않는다
+- 문서 identity는 `doc_path`로만 표현한다
 
 ---
 
@@ -78,8 +81,11 @@ description: >
 - work unit 허브 문서 `docs/work-units/<domain>/<task>/index.md`를 함께 생성/갱신한다
 - harvest 문서는 work unit 허브 문서로 backlink를 포함한다
 - 랜덤 id를 만들지 않는다
-- 모든 문서는 path 기반 deterministic id를 사용한다
+- 모든 문서는 `doc_path`로 식별한다
 - coverage gate가 YES여도 사용자 승인 전에는 downstream을 시작하지 않는다
+- `.codex/stack-profile.yaml`가 존재하면 기술 스택 Source of Truth로 사용한다
+- 없으면 사용자 입력, `.codex/repository-settings.md`, 기존 repo 탐지 결과를 합쳐 stack profile 초안을 만든다
+- 핵심 기술 스택 필드가 확정되지 않으면 `status: ready-for-oracle`로 판정하지 않는다
 
 ---
 
@@ -117,19 +123,15 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 
 ---
 
-## Document ID Rule
+## Document Identity Rule
 
-모든 harvest 문서는 반드시 path 기반 deterministic id를 가진다.
-
-형식:
-
-`HARV__<domain>__<task>`
+모든 문서는 `doc_path`로만 식별한다.
 
 규칙:
 
-- 파일 경로에서 domain / task를 derive 한다
-- run별 새 경로를 사용하므로 run별 새 id를 생성한다
-- random id는 금지한다
+- `doc_path`는 project-root-relative full path including filename 이어야 한다
+- 별도의 document id 필드는 만들지 않는다
+- 문서 identity는 경로에서만 derive 한다
 
 ---
 
@@ -138,8 +140,13 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 이 스킬은 아래 순서로 입력을 해석한다.
 
 1. 사용자의 최신 프롬프트
+<<<<<<< HEAD
+2. 기존 `docs/use-case-harvests/<domain>/<task>/use-case-harvest.md`
+3. 기존 `docs/work-units/<domain>/<task>/index.md`
+=======
 2. 가장 최신 run의 `docs/use-case-harvests/<domain>/<prev-task>/use-case-harvest.md` (있는 경우, 참고용)
 3. 가장 최신 run의 `docs/work-units/<domain>/<prev-task>/index.md` (있는 경우, 참고용)
+>>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
 4. `AGENTS.md`
 5. `ARCHITECTURE.md`
 6. 관련 `docs/*`
@@ -194,11 +201,11 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 
 ## Coverage Mapping Rules
 
-프롬프트의 각 요구를 최소 하나 이상의 유스케이스에 매핑해야 한다.
+프롬프트의 각 요구를 최소 하나 이상의 유스케이스 또는 non-UC change에 매핑해야 한다.
 
 반드시 기록:
 
-- Prompt Requirement → Mapped Use Case IDs
+- Prompt Requirement → Mapped Use Case IDs or Non-UC Change IDs
 - Coverage Gaps
 
 추가 점검:
@@ -211,7 +218,7 @@ work unit 허브 문서는 반드시 아래 경로에 있어야 한다.
 
 ## Coverage Gate Rules
 
-Coverage Gate는 아래 기준으로 판정한다.
+Coverage Gate는 UC가 하나 이상 존재하는 경우에만 판정한다.
 
 ### YES
 
@@ -239,8 +246,42 @@ PARTIAL 또는 NO 인 경우:
 
 YES 인 경우:
 
+- `stack_profile_status == READY` 이어야 한다
 - `status: ready-for-oracle`
 - `coverage_gate: YES`
+- `next_step: wait-for-user-approval`
+
+로 기록하고 종료한다
+
+단, 사용자 승인 전에는 oracle을 절대 시작하지 않는다.
+
+## Non-UC Scope Gate Rules
+
+UC가 없고 non-UC 작업만 있는 경우에는 `non_uc_scope_status`로 판정한다.
+
+### READY
+
+다음 조건을 모두 만족할 때만 READY다.
+
+1. UI/TECH/TEST/DOC 항목이 실행 가능 수준으로 분해되었다
+2. 구현 범위와 제외 범위가 구분되었다
+3. 설계 입력으로 사용할 수 있을 만큼 명확하다
+
+### PARTIAL
+
+범위가 모호하거나 서로 섞여 있을 때
+
+PARTIAL 인 경우:
+
+- 문서를 저장하고 종료한다
+- `Next Revision Focus` 를 반드시 채운다
+- downstream 은 절대 시작하지 않는다
+
+READY 인 경우:
+
+- `stack_profile_status == READY` 이어야 한다
+- `status: ready-for-oracle`
+- `non_uc_scope_status: READY`
 - `next_step: wait-for-user-approval`
 
 로 기록하고 종료한다
@@ -251,12 +292,13 @@ YES 인 경우:
 
 ## Oracle Handoff Rules
 
-`coverage_gate == YES` 인 경우에만 `Oracle Handoff` 를 채운다.
+`status == ready-for-oracle` 인 경우에만 `Oracle Handoff` 를 채운다.
 
 반드시 포함:
 
 - Allowed To Proceed: YES | NO
 - Confirmed Use Cases for Oracle
+- Non-Use-Case Changes for Oracle
 - Assumptions Forbidden for Oracle
 - User Approval Required Before Orchestration: YES
 
@@ -273,35 +315,63 @@ YES 인 경우:
 
 ```md
 # Properties
-id: HARV__<domain>__<task>
+doc_path: docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
 owner: Codex
 status: draft | blocked | ready-for-oracle
 title: <작업 제목>
 domain: <domain>
 task: <task>
-coverage_gate: YES | PARTIAL | NO
-next_step: revise-harvest | wait-for-user-approval
+coverage_gate: YES | PARTIAL | NO | N/A
+non_uc_scope_status: READY | PARTIAL | N/A
+next_step: revise-harvest | finalize-stack-profile | wait-for-user-approval
 last_updated: <YYYY-MM-DD:HH:mm>
 
 # Prompt Interpretation
 - User Goal
 - Requested Actions
+- Preferred Implementation Stack
 - Constraints
 - Expected Outcome
 - Explicit Non-goals
+
+# Work Item Classification
+## UC
+## UI
+## TECH
+## TEST
+## DOC
 
 # Candidate Use Cases
 
 # Confirmed Use Cases
 
 # Coverage Mapping
-- Prompt Requirement -> Mapped Use Case IDs
+- Prompt Requirement -> Mapped Use Case IDs or Non-UC Change IDs
 - Coverage Gaps
 
+# Non-Use-Case Changes
+## UI Changes
+## Technical Changes
+## Test / Quality Changes
+## Documentation Changes
+
 # Coverage Gate
-- Ready for Event Storming: YES | PARTIAL | NO
+- Ready for Event Storming: YES | PARTIAL | NO | N/A
 - Why
 - Blocking Conditions
+
+# Non-UC Scope Gate
+- Ready for Design/Planning: READY | PARTIAL | N/A
+- Why
+- Blocking Conditions
+
+# Stack Profile Readiness
+- stack_profile_path: .codex/stack-profile.yaml
+- stack_profile_status: READY | PARTIAL | MISSING
+- stack_profile_source: existing | derived | user-updated
+- asked_user_for_stack: YES | NO
+- required_fields_present:
+- blocking_fields:
 
 # Blocking Unknowns
 
@@ -316,6 +386,7 @@ last_updated: <YYYY-MM-DD:HH:mm>
 # Oracle Handoff
 - Allowed To Proceed: YES | NO
 - Confirmed Use Cases for Oracle
+- Non-Use-Case Changes for Oracle
 - Assumptions Forbidden for Oracle
 - User Approval Required Before Orchestration: YES
 
@@ -356,10 +427,12 @@ last_updated: <YYYY-MM-DD:HH:mm>
 
 아래 경우 즉시 종료한다.
 
-- coverage_gate == NO
-- coverage_gate == PARTIAL
+- UC 포함 작업에서 coverage_gate == NO
+- UC 포함 작업에서 coverage_gate == PARTIAL
+- non-UC only 작업에서 non_uc_scope_status == PARTIAL
 - 기존 문서와 새 정보가 충돌하지만 자동 해결 근거가 부족함
 - domain/task identity를 새 run 경로로 결정할 수 없음
+- stack_profile_status != READY
 
 종료 시에도 반드시 문서는 저장하거나 갱신한다.
 
@@ -372,14 +445,17 @@ last_updated: <YYYY-MM-DD:HH:mm>
 ### Case A. Harvest improved but not ready
 
 - 문서가 갱신되었다
-- coverage_gate 가 PARTIAL 또는 NO 다
+- UC 포함 작업이면 coverage_gate 가 PARTIAL 또는 NO 다
+- non-UC only 작업이면 non_uc_scope_status 가 PARTIAL 이다
 - 다음 revision focus 가 명시되었다
 
 ### Case B. Harvest ready for oracle
 
 - 문서가 갱신되었다
-- coverage_gate == YES
+- UC 포함 작업이면 coverage_gate == YES
+- non-UC only 작업이면 non_uc_scope_status == READY
 - status == ready-for-oracle
+- stack_profile_status == READY
 - user approval required 상태가 명시되었다
 - downstream agent는 호출하지 않았다
 
