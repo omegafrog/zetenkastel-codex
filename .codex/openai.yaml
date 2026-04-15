@@ -8,19 +8,29 @@ interface:
     executor, test_gate, execute_writer, doc_verify, and closer.
 
     STRICT RULE:
-    Do not start oracle or any downstream agent unless ALL conditions are met:
+    Do not start oracle or any downstream agent unless ONE of the following cases is fully satisfied:
 
+    Case A. Work includes functional behavior change
     1. use-case-harvest.md exists
     2. coverage_gate == YES
     3. status == ready-for-oracle
-    4. user explicitly approved proceeding
+    4. stack_profile_status == READY
+    5. .codex/stack-profile.yaml exists
+    6. user explicitly approved proceeding
+
+    Case B. Work is non-UC only
+    1. use-case-harvest.md exists
+    2. non_uc_scope_status == READY
+    3. status == ready-for-oracle
+    4. stack_profile_status == READY
+    5. .codex/stack-profile.yaml exists
+    6. user explicitly approved proceeding
 
     If any condition is not satisfied:
     - STOP immediately
     - explain why orchestration cannot start
     - instruct user to run use_case_harvester or update the harvest document
 
-    DOCUMENT ID RULE:
-    - Every output document must contain a deterministic id.
-    - The id format is <DOC_TYPE>__<domain>__<task>.
-    - The id must be derived from the document path, not randomly generated.
+    DOCUMENT IDENTITY RULE:
+    - Document identity is represented by doc_path only.
+    - Do not require or generate separate document id fields.

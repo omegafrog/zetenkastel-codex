@@ -1,0 +1,83 @@
+version: 1
+
+identity:
+  profile_name: default
+  status: active
+  last_updated: 2026-04-15
+  decided_by: user_or_harvester
+
+stack:
+  language: TBD
+  framework: TBD
+  runtime: TBD
+  build_tool: TBD
+  package_manager: TBD
+
+testing:
+  strategy: TDD
+  unit_test_framework: TBD
+  integration_test_framework: TBD
+  e2e_framework: TBD
+  commands:
+    build: TBD
+    unit_integration: TBD
+    e2e: TBD
+  required_stages: []
+
+observability:
+  logging:
+    enabled: true
+    style: TBD
+    facade: TBD
+    implementation: TBD
+    required_fields: []
+  metrics:
+    enabled: false
+    library: TBD
+    exporter: TBD
+    required_metrics: []
+    common_tags: []
+
+api:
+  style: TBD
+  error_handling: TBD
+  dto_style: TBD
+
+documentation:
+  code_comment_style: TBD
+  public_api_comments_required: false
+
+architecture:
+  pattern: TBD
+  dependency_rules: []
+
+mocking:
+  policy: mock-external-systems-only
+
+resolution_policy:
+  source_of_truth_priority:
+    - .codex/stack-profile.yaml
+    - .codex/test-gate.yaml
+    - .codex/repository-settings.md
+    - existing_repository_convention
+  allow_repo_auto_detection: true
+  allow_existing_repo_convention_when_unspecified: true
+
+required_fields_for_oracle:
+  - stack.language
+  - stack.framework
+  - stack.runtime
+  - stack.build_tool
+  - testing.commands.unit_integration
+  - api.style
+
+required_fields_for_executor:
+  - stack.language
+  - stack.framework
+  - stack.runtime
+  - stack.build_tool
+  - testing.strategy
+  - testing.commands.unit_integration
+
+required_fields_for_test_gate:
+  - testing.commands.unit_integration

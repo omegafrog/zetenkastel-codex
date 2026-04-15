@@ -16,7 +16,11 @@ last_updated: <YYYY-MM-DD:HH:mm>
 # Purpose / Big Picture
 
 # Progress
-- [ ] <work item tied to UC/policy/aggregate>
+- [ ] UC <functional work item>
+- [ ] UI <ui or interaction work item>
+- [ ] TECH <technical or refactoring work item>
+- [ ] TEST <test or quality work item>
+- [ ] DOC <documentation work item>
 
 # Surprises & Discoveries
 
