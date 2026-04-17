@@ -47,7 +47,9 @@ developer_instructions = """
 4. bounded context를 확정한다.
 5. policy를 반드시 테스트 가능한 규칙으로 정의한다.
 6. 구현 agent가 그대로 따라갈 수 있는 self-contained plan.md 초안을 만든다.
-7. 중간 산출물이 모두 docs/<content-type>/<domain>/<task>/ 경로로 분리되도록 명시한다.
+7. 중간 산출물 경로 규칙을 명시한다:
+   - harvest/work-unit/exec-plan은 run task(`<task>`)를 사용
+   - product-specs/design-docs는 canonical base-task(`<base-task>`)를 사용
 8. Progress 체크박스를 포함해 실행 상태 추적이 가능하도록 한다.
 9. 검증 명령, 기대 결과, 실패 시 되돌아갈 설계 포인트를 명시한다.
 
@@ -133,6 +135,7 @@ Detailed Design에는 반드시 다음 구분이 있어야 한다:
 <<<<<<< HEAD
 [Output Location Rules]
 반드시 domain과 task를 기준으로 모든 산출물 경로를 명시한다.
+`<base-task>`는 run suffix(`-YYYYMMDD-HHMM`)를 제거한 canonical task다.
 경로 규칙은 다음과 같다:
 
 - Use Case Harvest:
@@ -140,17 +143,17 @@ Detailed Design에는 반드시 다음 구분이 있어야 한다:
 - Work Unit Index:
   docs/work-units/<domain>/<task>/index.md
 - Domain Boundary:
-  docs/product-specs/<domain>/<task>/domain-boundary.md
+  docs/product-specs/<domain>/<base-task>/domain-boundary.md
 - Use Cases:
-  docs/product-specs/<domain>/<task>/use-cases.md
+  docs/product-specs/<domain>/<base-task>/use-cases.md
 - Event Storming:
-  docs/design-docs/<domain>/<task>/event-storming.md
+  docs/design-docs/<domain>/<base-task>/event-storming.md
 - Aggregate Design:
-  docs/design-docs/<domain>/<task>/aggregate-design.md
+  docs/design-docs/<domain>/<base-task>/aggregate-design.md
 - Bounded Context:
-  docs/design-docs/<domain>/<task>/bounded-context.md
+  docs/design-docs/<domain>/<base-task>/bounded-context.md
 - Detailed Design:
-  docs/design-docs/<domain>/<task>/detailed-design.md
+  docs/design-docs/<domain>/<base-task>/detailed-design.md
 - Plan:
   docs/exec-plans/active/<domain>/<task>/plan.md
 - Implementation Log:
@@ -284,8 +287,8 @@ last_updated: <YYYY-MM-DD:HH:mm>
 # Discovery Hints (grep)
 - `grep -R \"^# Properties\" docs/use-case-harvests/<domain>/<task>/`
 - `grep -R \"^# Properties\" docs/work-units/<domain>/<task>/`
-- `grep -R \"^# Properties\" docs/product-specs/<domain>/<task>/`
-- `grep -R \"^# Properties\" docs/design-docs/<domain>/<task>/`
+- `grep -R \"^# Properties\" docs/product-specs/<domain>/<base-task>/`
+- `grep -R \"^# Properties\" docs/design-docs/<domain>/<base-task>/`
 - `grep -R \"^# Properties\" docs/exec-plans/active/<domain>/<task>/`
 
 # Purpose / Big Picture
@@ -356,8 +359,8 @@ last_updated: <YYYY-MM-DD:HH:mm>
 # Output Files
 - docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
   - doc_path: docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
-- docs/product-specs/<domain>/<task>/domain-boundary.md
-  - doc_path: docs/product-specs/<domain>/<task>/domain-boundary.md
+- docs/product-specs/<domain>/<base-task>/domain-boundary.md
+  - doc_path: docs/product-specs/<domain>/<base-task>/domain-boundary.md
 ...
 - docs/exec-plans/active/<domain>/<task>/plan.md
   - doc_path: docs/exec-plans/active/<domain>/<task>/plan.md

@@ -144,4 +144,54 @@ class NoteControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
+
+    @Test
+    void shouldClassifyInboxNoteToLiteratureWhenSourceEvidenceExists() throws Exception {
+        String payload = """
+                {
+                  "type":"inbox",
+                  "fileName":"source-driven",
+                  "title":"Source Driven",
+                  "tags":["research"],
+                  "content":"저자: Martin Fowler\\n출처: Refactoring\\nURL: https://martinfowler.com/articles/refactoring.html\\n리팩토링 요약",
+                  "links":[],
+                  "metadata":{}
+                }
+                """;
+
+        mockMvc.perform(post("/api/notes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("literature-notes/source-driven"))
+                .andExpect(jsonPath("$.metadata.author").value("Martin Fowler"))
+                .andExpect(jsonPath("$.metadata.source").value("Refactoring"))
+                .andExpect(jsonPath("$.metadata.url").value("https://martinfowler.com/articles/refactoring.html"));
+
+        mockMvc.perform(get("/api/notes/literature-notes/source-driven"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.type").value("literature-notes"));
+    }
+
+    @Test
+    void shouldKeepInboxWhenClassificationEvidenceIsWeak() throws Exception {
+        String payload = """
+                {
+                  "type":"inbox",
+                  "fileName":"ambiguous",
+                  "title":"Ambiguous",
+                  "tags":["scratch"],
+                  "content":"first note content",
+                  "links":[],
+                  "metadata":{}
+                }
+                """;
+
+        mockMvc.perform(post("/api/notes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value("inbox/ambiguous"))
+                .andExpect(jsonPath("$.metadata.classification_review").value("needs-review"));
+    }
 }

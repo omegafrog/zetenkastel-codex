@@ -69,14 +69,16 @@ FAIL:
 
 - docs/work-units/<domain>/<task>/index.md
 - docs/use-case-harvests/<domain>/<task>/use-case-harvest.md
-- docs/product-specs/<domain>/<task>/domain-boundary.md
-- docs/product-specs/<domain>/<task>/use-cases.md
-- docs/design-docs/<domain>/<task>/event-storming.md
-- docs/design-docs/<domain>/<task>/aggregate-design.md
-- docs/design-docs/<domain>/<task>/bounded-context.md
-- docs/design-docs/<domain>/<task>/detailed-design.md
+- docs/product-specs/<domain>/<base-task>/domain-boundary.md
+- docs/product-specs/<domain>/<base-task>/use-cases.md
+- docs/design-docs/<domain>/<base-task>/event-storming.md
+- docs/design-docs/<domain>/<base-task>/aggregate-design.md
+- docs/design-docs/<domain>/<base-task>/bounded-context.md
+- docs/design-docs/<domain>/<base-task>/detailed-design.md
 - docs/exec-plans/active/<domain>/<task>/plan.md
 - docs/exec-plans/active/<domain>/<task>/implementation-log.md
+
+`<base-task>`는 run suffix(`-YYYYMMDD-HHMM`)를 제거한 canonical task다.
 
 ---
 

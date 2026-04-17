@@ -7,6 +7,7 @@ import com.zetenkastel.core.domain.NoteId;
 import com.zetenkastel.core.domain.NoteType;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +44,14 @@ public class NoteController {
                                @PathVariable("fileName") String fileName,
                                @RequestBody UpsertNoteRequest request,
                                @RequestParam(name = "linkMode", required = false) String linkMode) {
-        Note note = new Note(new NoteId(NoteType.fromDirectory(type), fileName), request.title(), request.tags(), request.content(), request.links());
+        Note note = new Note(
+                new NoteId(NoteType.fromDirectory(type), fileName),
+                request.title(),
+                request.tags(),
+                request.content(),
+                request.links(),
+                request.metadata()
+        );
         return NoteResponse.from(noteService.update(note, LinkMode.fromNullable(linkMode)));
     }
 
@@ -101,12 +109,29 @@ public class NoteController {
     private Note noteFrom(UpsertNoteRequest request) {
         NoteType type = NoteType.fromDirectory(request.type());
         NoteId id = new NoteId(type, request.fileName());
-        return new Note(id, request.title(), request.tags(), request.content(), request.links());
+        return new Note(id, request.title(), request.tags(), request.content(), request.links(), request.metadata());
     }
 
-    public record UpsertNoteRequest(String type, String fileName, String title, Set<String> tags, String content, Set<String> links) { }
+    public record UpsertNoteRequest(
+            String type,
+            String fileName,
+            String title,
+            Set<String> tags,
+            String content,
+            Set<String> links,
+            Map<String, String> metadata
+    ) { }
 
-    public record NoteResponse(String id, String type, String fileName, String title, Set<String> tags, String content, Set<String> links) {
+    public record NoteResponse(
+            String id,
+            String type,
+            String fileName,
+            String title,
+            Set<String> tags,
+            String content,
+            Set<String> links,
+            Map<String, String> metadata
+    ) {
         static NoteResponse from(Note note) {
             return new NoteResponse(
                     note.id().pathKey(),
@@ -115,7 +140,8 @@ public class NoteController {
                     note.title(),
                     note.tags(),
                     note.content(),
-                    note.links()
+                    note.links(),
+                    note.metadata()
             );
         }
     }

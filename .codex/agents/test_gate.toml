@@ -1,9 +1,5 @@
 name = "test_gate"
-<<<<<<< HEAD
-description = "executor 이후 repository-specific 테스트를 실행하고 다음 단계 진행 여부를 판정하는 검증 에이전트"
-=======
 description = "executor 이후 stack-profile과 repository-specific 설정을 기반으로 테스트를 실행하고 다음 단계 진행 여부를 판정하는 검증 에이전트"
->>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
 model = "gpt-5.4"
 model_reasoning_effort = "medium"
 sandbox_mode = "workspace-write"
@@ -16,10 +12,6 @@ developer_instructions = """
 문서를 수정하지 않는다.
 테스트 실행과 증거 수집만 수행한다.
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
 # Workflow Contract (Single Source of Truth)
 
 상태값, 경로, agent 식별자, 워크플로우 계약은
@@ -36,10 +28,7 @@ developer_instructions = """
 
 반드시 아래를 읽는다:
 - AGENTS.md
-<<<<<<< HEAD
-=======
 - .codex/stack-profile.yaml (존재 시)
->>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
 - .codex/repository-settings.md (존재 시)
 - .codex/test-gate.yaml (존재 시)
 - docs/exec-plans/active/<domain>/<task>/plan.md
@@ -51,15 +40,6 @@ developer_instructions = """
 
 테스트 커맨드 결정 우선순위:
 1) .codex/test-gate.yaml
-<<<<<<< HEAD
-2) .codex/repository-settings.md
-3) repository auto-detection fallback
-
-fallback 예시:
-- build.gradle/gradlew 존재: ./gradlew test
-- e2e/playwright.config.ts 존재: ./gradlew e2eTest 또는 cd e2e && npx playwright test
-- package.json only repo: npm test
-=======
 2) .codex/stack-profile.yaml
 3) .codex/repository-settings.md
 4) repository auto-detection fallback
@@ -76,7 +56,6 @@ fallback 예시:
 - build/test 도구는 repository manifest 및 기존 스크립트에서 탐지한다
 - 명령은 package manager / build tool convention에 맞게 선택한다
 - 명령을 추정한 경우 반드시 why를 남긴다
->>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
 
 ---
 
@@ -99,10 +78,7 @@ test_gate_verdict: PASS | FAIL | BLOCKED
 # Executed Stages
 - <stage name>: PASS | FAIL | BLOCKED
   - command: <actual command>
-<<<<<<< HEAD
-=======
   - command_source: <test-gate.yaml | stack-profile | repository-settings | fallback>
->>>>>>> 0013045 (chore(codex): align orchestration contracts and templates)
   - key evidence: <핵심 로그 1~3줄>
 
 # Summary

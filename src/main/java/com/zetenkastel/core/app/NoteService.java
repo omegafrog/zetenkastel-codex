@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -22,16 +21,19 @@ import org.springframework.stereotype.Service;
 public class NoteService {
 
     private final NoteRepository noteRepository;
+    private final NoteClassificationService noteClassificationService;
 
-    public NoteService(NoteRepository noteRepository) {
+    public NoteService(NoteRepository noteRepository, NoteClassificationService noteClassificationService) {
         this.noteRepository = noteRepository;
+        this.noteClassificationService = noteClassificationService;
     }
 
     public Note create(Note note, LinkMode linkMode) {
-        if (noteRepository.existsById(note.id())) {
-            throw new IllegalArgumentException("Note already exists: " + note.id().pathKey());
+        Note prepared = noteClassificationService.prepare(note, null).note();
+        if (noteRepository.existsById(prepared.id())) {
+            throw new IllegalArgumentException("Note already exists: " + prepared.id().pathKey());
         }
-        Note saved = noteRepository.save(note);
+        Note saved = noteRepository.save(prepared);
         return applyLinkMode(saved, linkMode);
     }
 
@@ -39,7 +41,18 @@ public class NoteService {
         if (!noteRepository.existsById(note.id())) {
             throw new IllegalArgumentException("Note does not exist: " + note.id().pathKey());
         }
-        Note saved = noteRepository.save(note);
+        Note current = get(note.id());
+        Note prepared = noteClassificationService.prepare(note, current).note();
+
+        if (!prepared.id().equals(note.id()) && noteRepository.existsById(prepared.id())) {
+            throw new IllegalArgumentException("Classified target already exists: " + prepared.id().pathKey());
+        }
+
+        Note saved = noteRepository.save(prepared);
+        if (!prepared.id().equals(note.id())) {
+            noteRepository.deleteById(note.id());
+            rewireLinks(note.id().pathKey(), prepared.id().pathKey());
+        }
         return applyLinkMode(saved, linkMode);
     }
 
@@ -71,6 +84,7 @@ public class NoteService {
         Predicate<Note> queryMatch = note -> normalizedQuery.isBlank() ||
                 normalize(note.title()).contains(normalizedQuery) ||
                 normalize(note.content()).contains(normalizedQuery) ||
+                note.metadata().values().stream().map(this::normalize).anyMatch(it -> it.contains(normalizedQuery)) ||
                 note.tags().stream().map(this::normalize).anyMatch(it -> it.contains(normalizedQuery));
 
         Predicate<Note> tagMatch = note -> normalizedTag.isBlank() ||
@@ -139,6 +153,18 @@ public class NoteService {
         return noteRepository.save(updated);
     }
 
+    private void rewireLinks(String previousPathKey, String nextPathKey) {
+        for (Note candidate : noteRepository.findAll()) {
+            if (!candidate.links().contains(previousPathKey)) {
+                continue;
+            }
+            Set<String> updatedLinks = new LinkedHashSet<>(candidate.links());
+            updatedLinks.remove(previousPathKey);
+            updatedLinks.add(nextPathKey);
+            noteRepository.save(candidate.withLinks(updatedLinks));
+        }
+    }
+
     private double jaccard(Set<String> first, Set<String> second) {
         if (first.isEmpty() || second.isEmpty()) {
             return 0.0;
@@ -160,6 +186,9 @@ public class NoteService {
         for (String tag : note.tags()) {
             tokens.add(normalize(tag));
         }
+        note.metadata().values().stream()
+                .map(this::splitTokens)
+                .forEach(tokens::addAll);
         return tokens;
     }
 
