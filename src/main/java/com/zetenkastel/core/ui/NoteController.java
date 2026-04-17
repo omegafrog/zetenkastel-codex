@@ -1,5 +1,6 @@
 package com.zetenkastel.core.ui;
 
+import com.zetenkastel.core.app.InboxTriageService;
 import com.zetenkastel.core.app.NoteService;
 import com.zetenkastel.core.domain.LinkMode;
 import com.zetenkastel.core.domain.Note;
@@ -26,9 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class NoteController {
 
     private final NoteService noteService;
+    private final InboxTriageService inboxTriageService;
 
-    public NoteController(NoteService noteService) {
+    public NoteController(NoteService noteService, InboxTriageService inboxTriageService) {
         this.noteService = noteService;
+        this.inboxTriageService = inboxTriageService;
     }
 
     @PostMapping("/notes")
@@ -104,6 +107,20 @@ public class NoteController {
     @GetMapping("/note-types")
     public List<String> noteTypes() {
         return Arrays.stream(NoteType.values()).map(NoteType::directory).toList();
+    }
+
+    @PostMapping("/triage/{type}/{fileName}")
+    public String triage(@PathVariable("type") String type,
+                        @PathVariable("fileName") String fileName) {
+        String pathKey = type + "/" + fileName;
+        inboxTriageService.triageNoteManually(pathKey);
+        return "Triage completed for " + pathKey;
+    }
+
+    @PostMapping("/triage/overdue")
+    public String triageAllOverdue() {
+        inboxTriageService.triageOverdueNotes();
+        return "Triage completed for all overdue notes";
     }
 
     private Note noteFrom(UpsertNoteRequest request) {

@@ -44,3 +44,5 @@ e2e/test-results/
 
 # Frontend artifacts
 frontend/node_modules/
+frontend/log.txt
+.vscode/

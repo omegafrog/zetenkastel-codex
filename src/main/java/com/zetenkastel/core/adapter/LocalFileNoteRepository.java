@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -93,6 +94,13 @@ public class LocalFileNoteRepository implements NoteRepository {
     }
 
     @Override
+    public List<Note> findOverdueNotes() {
+        return findByType(NoteType.INBOX).stream()
+                .filter(Note::isDue)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean existsById(NoteId id) {
         return Files.exists(toPath(id));
     }
@@ -133,12 +141,13 @@ public class LocalFileNoteRepository implements NoteRepository {
         lines.add("fileName: " + note.id().fileName());
         String tags = String.join(",", note.tags());
         String links = String.join(",", note.links());
-        lines.add("tags: " + tags);
-        lines.add("links: " + links);
-        note.metadata().forEach((key, value) -> lines.add(key + ": " + (value == null ? "" : value)));
-        lines.add("---");
-        lines.add(note.content());
-        return String.join("\n", lines);
+        String dueDate = note.dueDate() != null ? note.dueDate().toString() : "";
+        return "title: " + note.title() + "\n"
+                + "tags: " + tags + "\n"
+                + "links: " + links + "\n"
+                + "duedate: " + dueDate + "\n"
+                + "---\n"
+                + note.content();
     }
 
     private Note deserialize(NoteId id, String raw) {
@@ -153,15 +162,17 @@ public class LocalFileNoteRepository implements NoteRepository {
 
         if (divider < 0) {
             String fallbackTitle = lines.isEmpty() ? id.fileName() : lines.getFirst();
-            return new Note(id, fallbackTitle, Set.of(), raw, Set.of());
+            return new Note(id, fallbackTitle, Set.of(), raw, Set.of(), Map.of());
         }
 
         String title = extractHeader(lines, "title:", divider, id.fileName());
         Set<String> tags = splitCommaValues(extractHeader(lines, "tags:", divider, ""));
         Set<String> links = splitCommaValues(extractHeader(lines, "links:", divider, ""));
+        String dueDateStr = extractHeader(lines, "duedate:", divider, "");
+        LocalDate dueDate = dueDateStr.isBlank() ? null : LocalDate.parse(dueDateStr);
         String content = String.join("\n", lines.subList(divider + 1, lines.size()));
 
-        return new Note(id, title, tags, content, links);
+        return new Note(id, title, tags, content, links, dueDate);
     }
 
     private Note deserializeFrontmatter(NoteId id, List<String> lines, int divider) {

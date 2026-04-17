@@ -15,6 +15,8 @@ public interface NoteRepository {
 
     List<Note> findByType(NoteType type);
 
+    List<Note> findOverdueNotes();
+
     boolean existsById(NoteId id);
 
     void deleteById(NoteId id);
